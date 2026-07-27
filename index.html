@@ -698,6 +698,23 @@
             }
         }
 
+        // --- DATE NORMALIZER FOR UPLOADS ---
+        function formatExcelDate(val) {
+            if (!val) return '';
+            // If it's an Excel serial number (e.g. 45288)
+            if (!isNaN(val) && typeof val === 'number') {
+                const excelEpoch = new Date(1899, 11, 30);
+                const jsDate = new Date(excelEpoch.getTime() + val * 86400000);
+                return jsDate.toISOString().split('T')[0];
+            }
+            // If it's already a string, attempt conversion or return trimmed
+            const parsed = Date.parse(val);
+            if (!isNaN(parsed)) {
+                return new Date(parsed).toISOString().split('T')[0];
+            }
+            return String(val).trim();
+        }
+
         // --- BULK FILE & EXPORT UTILITIES ---
         window.uploadFile = function() {
             const fileInput = document.getElementById('fileInput');
@@ -720,16 +737,19 @@
                         jsonRows.forEach(row => {
                             const profileNo = row['Profile #'] || row['profileNumber'];
                             if(profileNo) {
+                                const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
+                                const rawFirstTest = row['First Order Date'] || row['First Test Date'] || row['firstTestDate'];
+
                                 const patientRecord = {
                                     profileNumber: String(profileNo).trim(),
                                     nameEn: row['Name (EN)'] || row['nameEn'] || '',
                                     nameAr: row['Name (AR)'] || row['nameAr'] || '',
                                     mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || ''),
-                                    dob: row['Date Of Birth'] || row['dob'] || '',
+                                    dob: formatExcelDate(rawDob),
                                     gender: row['Gender'] || row['gender'] || 'Male',
-                                    firstTestDate: row['First Order Date'] || row['firstTestDate'] || '',
+                                    firstTestDate: formatExcelDate(rawFirstTest),
                                     classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
-                                    subscriptionType: 'Basic'
+                                    subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
                                 };
                                 push(ref(db, 'patients'), patientRecord);
                                 count++;
@@ -751,16 +771,19 @@
                         results.data.forEach(row => {
                             const profileNo = row['Profile #'] || row['profileNumber'];
                             if(profileNo) {
+                                const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
+                                const rawFirstTest = row['First Order Date'] || row['First Test Date'] || row['firstTestDate'];
+
                                 const patientRecord = {
                                     profileNumber: String(profileNo).trim(),
                                     nameEn: row['Name (EN)'] || row['nameEn'] || '',
                                     nameAr: row['Name (AR)'] || row['nameAr'] || '',
                                     mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || ''),
-                                    dob: row['Date Of Birth'] || row['dob'] || '',
+                                    dob: formatExcelDate(rawDob),
                                     gender: row['Gender'] || row['gender'] || 'Male',
-                                    firstTestDate: row['First Order Date'] || row['firstTestDate'] || '',
+                                    firstTestDate: formatExcelDate(rawFirstTest),
                                     classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
-                                    subscriptionType: 'Basic'
+                                    subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
                                 };
                                 push(ref(db, 'patients'), patientRecord);
                                 count++;
@@ -819,7 +842,6 @@
                 return;
             }
 
-            // Wipe nodes in Firebase
             Promise.all([
                 set(ref(db, 'patients'), null),
                 set(ref(db, 'transactionsEarned'), null),
