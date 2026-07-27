@@ -312,10 +312,17 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Global data caches for aggregating calculations
+        // Global data caches for aggregating calculations & validation
         let patientsCache = {};
         let earnCache = {};
         let redeemCache = {};
+
+        // Helper function to check if a profile number exists in the patients database
+        function isProfileValid(profileNo) {
+            if (!profileNo || !patientsCache) return false;
+            const target = profileNo.trim();
+            return Object.values(patientsCache).some(p => p.profileNumber && p.profileNumber.trim() === target);
+        }
 
         function refreshAllData() {
             const tbody = document.querySelector('#patientsTable tbody');
@@ -465,8 +472,16 @@
         // --- MODULE 2 LOGIC: POINTS EARNED ---
         document.getElementById('earnForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const profileNo = document.getElementById('earnProfileNumber').value;
+
+            // Validate if profile exists
+            if (!isProfileValid(profileNo)) {
+                alert(`Validation Error: Profile number "${profileNo}" does not exist in the system. Please register the patient first.`);
+                return;
+            }
+
             const txnData = {
-                profileNumber: document.getElementById('earnProfileNumber').value,
+                profileNumber: profileNo.trim(),
                 reason: document.getElementById('earnReason').value,
                 date: document.getElementById('earnDate').value,
                 description: document.getElementById('earnDescription').value,
@@ -527,6 +542,12 @@
             e.preventDefault();
             const profileNo = document.getElementById('redProfileNumber').value.trim();
             const targetAmount = Number(document.getElementById('redAmount').value);
+
+            // Validate if profile exists
+            if (!isProfileValid(profileNo)) {
+                alert(`Validation Error: Profile number "${profileNo}" does not exist in the system. Please register the patient first.`);
+                return;
+            }
 
             // Calculate current balance for the given profile number
             let totalEarned = 0;
