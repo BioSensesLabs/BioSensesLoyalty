@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Loyalty App</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- PapaParse for CSV handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">🏥 BioSenses Loyalty Portal</a>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs mb-4" id="portalTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button">Patients Profile</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="earn-tab" data-bs-toggle="tab" data-bs-target="#earn" type="button">Points Earned</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="redeem-tab" data-bs-toggle="tab" data-bs-target="#redeem" type="button">Redeemed Points</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="portalContent">
+            
+            <!-- MODULE 1: PATIENTS PROFILE -->
+            <div class="tab-pane fade show active" id="patients" role="tabpanel">
+                <div class="card shadow-sm p-4 mb-4">
+                    <h4 class="mb-3">Manage Patients Profile</h4>
+                    <form id="patientForm" class="row g-3">
+                        <input type="hidden" id="patientFirebaseKey">
+                        <div class="col-md-3">
+                            <label class="form-label">Profile Number</label>
+                            <input type="text" class="form-control" id="profileNumber" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Name (EN)</label>
+                            <input type="text" class="form-control" id="nameEn" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Name (AR)</label>
+                            <input type="text" class="form-control" id="nameAr">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Mobile Number</label>
+                            <input type="text" class="form-control" id="mobileNumber" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" id="dob" required onchange="calculateDerivedFields()">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Gender</label>
+                            <select class="form-select" id="gender">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">First Test Date</label>
+                            <input type="date" class="form-control" id="firstTestDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Classification</label>
+                            <select class="form-select" id="classification">
+                                <option value="Adult">Adult</option>
+                                <option value="Child">Child</option>
+                                <option value="Animal">Animal</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Subscription Type</label>
+                            <select class="form-select" id="subscriptionType">
+                                <option value="Basic">Basic</option>
+                                <option value="Premium">Premium</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Loyalty Joining Date</label>
+                            <input type="date" class="form-control" id="loyaltyJoiningDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Premium Expiry Date</label>
+                            <input type="date" class="form-control" id="premiumExpiryDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">E-mail Address</label>
+                            <input type="email" class="form-control" id="email">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Nationality</label>
+                            <input type="text" class="form-control" id="nationality">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Referral (No / Name / Mobile)</label>
+                            <input type="text" class="form-control" id="referredBy">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success me-2">Save Patient</button>
+                            <button type="reset" class="btn btn-secondary me-2" onclick="resetPatientForm()">Clear</button>
+                        </div>
+                    </form>
+                    <hr class="my-4">
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label fw-bold">Bulk Upload (CSV)</label>
+                            <input type="file" id="csvFileInput" class="form-control" accept=".csv">
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end mb-2">
+                            <button class="btn btn-outline-primary me-2" onclick="uploadCSV()">Upload CSV</button>
+                            <button class="btn btn-outline-secondary" onclick="downloadCSV()">Download CSV</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patients Table -->
+                <div class="card shadow-sm p-4">
+                    <h5>Registered Patients</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="patientsTable">
+                            <thead>
+                                <tr>
+                                    <th>Profile #</th>
+                                    <th>Name (EN)</th>
+                                    <th>Mobile</th>
+                                    <th>DOB / Age</th>
+                                    <th>Class</th>
+                                    <th>Sub. Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE 2: POINTS EARNED -->
+            <div class="tab-pane fade" id="earn" role="tabpanel">
+                <div class="card shadow-sm p-4 mb-4">
+                    <h4 class="mb-3">Add Points Transaction</h4>
+                    <form id="earnForm" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Profile Number</label>
+                            <input type="text" class="form-control" id="earnProfileNumber" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Reason</label>
+                            <select class="form-select" id="earnReason">
+                                <option>Spending</option><option>Referrals</option><option>Healthy Lifestyle</option>
+                                <option>Occasions</option><option>Health Achievement</option><option>Customer Experience</option>
+                                <option>Corporate</option><option>Community</option><option>Experience</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" id="earnDate" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Amount Earned</label>
+                            <input type="number" class="form-control" id="amountEarned" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Description</label>
+                            <input type="text" class="form-control" id="earnDescription">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="date" class="form-control" id="earnExpiryDate">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Msg Sent</label>
+                            <select class="form-select" id="msgSent"><option>Yes</option><option>No</option></select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Redeemed</label>
+                            <select class="form-select" id="earnRedeemed"><option>No</option><option>Yes</option></select>
+                        </div>
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-primary">Add Earn Transaction</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- View Transactions -->
+                <div class="card shadow-sm p-4">
+                    <div class="row mb-3">
+                        <div class="col-md-6"><h5>Transactions Ledger</h5></div>
+                        <div class="col-md-3"><input type="text" id="searchTxn" class="form-control" placeholder="Search profile/desc..." onkeyup="filterTransactions()"></div>
+                        <div class="col-md-3">
+                            <select id="filterReason" class="form-select" onchange="filterTransactions()">
+                                <option value="">Filter by Reason...</option>
+                                <option>Spending</option><option>Referrals</option><option>Healthy Lifestyle</option>
+                                <option>Occasions</option><option>Health Achievement</option><option>Customer Experience</option>
+                                <option>Corporate</option><option>Community</option><option>Experience</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped" id="earnTable">
+                            <thead>
+                                <tr>
+                                    <th>Profile #</th><th>Reason</th><th>Date</th><th>Description</th>
+                                    <th>Earned</th><th>Wallet</th><th>Expiry</th><th>Redeemed</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODULE 3: REDEEMED POINTS -->
+            <div class="tab-pane fade" id="redeem" role="tabpanel">
+                <div class="card shadow-sm p-4 mb-4">
+                    <h4 class="mb-3">Redeem Points</h4>
+                    <form id="redeemForm" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Profile Number</label>
+                            <input type="text" class="form-control" id="redProfileNumber" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Redemption Option</label>
+                            <select class="form-select" id="redOption" onchange="updateRedemptionAmount()">
+                                <option value="250 <> 5 JOD" data-amt="250">250 &lt;&gt; 5 JOD</option>
+                                <option value="500 <> 10 JOD" data-amt="500">500 &lt;&gt; 10 JOD</option>
+                                <option value="750 <> 15 JOD" data-amt="750">750 &lt;&gt; 15 JOD</option>
+                                <option value="1000 <> 20 JOD" data-amt="1000">1000 &lt;&gt; 20 JOD</option>
+                                <option value="1500 <> Free Basic Checkup" data-amt="1500">1500 &lt;&gt; Free Basic Checkup</option>
+                                <option value="2000 <> 35 JOD" data-amt="2000">2000 &lt;&gt; 35 JOD</option>
+                                <option value="2500 <> Free comprehensive Checkup" data-amt="2500">2500 &lt;&gt; Free comprehensive Checkup</option>
+                                <option value="5000 <> Premium Subscription" data-amt="5000">5000 &lt;&gt; Premium Subscription</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" id="redDate" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Transaction Description</label>
+                            <input type="text" class="form-control" id="redDescription">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Points Amount</label>
+                            <input type="number" class="form-control" id="redAmount" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Redeemed By</label>
+                            <input type="text" class="form-control" id="redeemedBy" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Redeemed Flag</label>
+                            <select class="form-select" id="redeemedFlag"><option>Yes</option><option>No</option></select>
+                        </div>
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-danger">Process Redemption</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Redeemed Table -->
+                <div class="card shadow-sm p-4">
+                    <h5>Redemption Records</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="redeemTable">
+                            <thead>
+                                <tr>
+                                    <th>Profile #</th><th>Option</th><th>Description</th>
+                                    <th>Date</th><th>Amount</th><th>Redeemed By</th><th>Flag</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Firebase SDK Setup -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // TODO: Replace with your actual Firebase project credentials
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // --- MODULE 1 LOGIC: PATIENTS ---
+        window.calculateDerivedFields = function() {
+            const dobVal = document.getElementById('dob').value;
+            if(!dobVal) return;
+            const dobDate = new Date(dobVal);
+            const today = new Date();
+            let age = today.getFullYear() - dobDate.getFullYear();
+            const m = today.getMonth() - dobDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
+                age--;
+            }
+            // Logic handled natively or stored if required
+        }
+
+        document.getElementById('patientForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const key = document.getElementById('patientFirebaseKey').value;
+            const patientData = {
+                profileNumber: document.getElementById('profileNumber').value,
+                nameEn: document.getElementById('nameEn').value,
+                nameAr: document.getElementById('nameAr').value,
+                mobileNumber: document.getElementById('mobileNumber').value,
+                dob: document.getElementById('dob').value,
+                gender: document.getElementById('gender').value,
+                firstTestDate: document.getElementById('firstTestDate').value,
+                classification: document.getElementById('classification').value,
+                subscriptionType: document.getElementById('subscriptionType').value,
+                loyaltyJoiningDate: document.getElementById('loyaltyJoiningDate').value,
+                premiumExpiryDate: document.getElementById('premiumExpiryDate').value,
+                email: document.getElementById('email').value,
+                nationality: document.getElementById('nationality').value,
+                referredBy: document.getElementById('referredBy').value
+            };
+
+            if(key) {
+                update(ref(db, 'patients/' + key), patientData);
+            } else {
+                const newRef = push(ref(db, 'patients'));
+                set(newRef, patientData);
+            }
+            this.reset();
+            document.getElementById('patientFirebaseKey').value = '';
+        });
+
+        // Realtime Listener for Patients
+        const patientsRef = ref(db, 'patients');
+        onValue(patientsRef, (snapshot) => {
+            const data = snapshot.val();
+            const tbody = document.querySelector('#patientsTable tbody');
+            tbody.innerHTML = '';
+            if(data) {
+                Object.keys(data).forEach(key => {
+                    const p = data[key];
+                    const age = p.dob ? new Date().getFullYear() - new Date(p.dob).getFullYear() : 'N/A';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${p.profileNumber}</td>
+                            <td>${p.nameEn}</td>
+                            <td>${p.mobileNumber}</td>
+                            <td>${p.dob} (${age} yrs)</td>
+                            <td>${p.classification}</td>
+                            <td>${p.subscriptionType}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="editPatient('${key}', ${JSON.stringify(p).replace(/"/g, '&quot;')})">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deletePatient('${key}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        });
+
+        window.editPatient = function(key, p) {
+            document.getElementById('patientFirebaseKey').value = key;
+            document.getElementById('profileNumber').value = p.profileNumber || '';
+            document.getElementById('nameEn').value = p.nameEn || '';
+            document.getElementById('nameAr').value = p.nameAr || '';
+            document.getElementById('mobileNumber').value = p.mobileNumber || '';
+            document.getElementById('dob').value = p.dob || '';
+            document.getElementById('gender').value = p.gender || 'Male';
+            document.getElementById('firstTestDate').value = p.firstTestDate || '';
+            document.getElementById('classification').value = p.classification || 'Adult';
+            document.getElementById('subscriptionType').value = p.subscriptionType || 'Basic';
+            document.getElementById('loyaltyJoiningDate').value = p.loyaltyJoiningDate || '';
+            document.getElementById('premiumExpiryDate').value = p.premiumExpiryDate || '';
+            document.getElementById('email').value = p.email || '';
+            document.getElementById('nationality').value = p.nationality || '';
+            document.getElementById('referredBy').value = p.referredBy || '';
+        }
+
+        window.deletePatient = function(key) {
+            if(confirm('Are you sure you want to delete this profile?')) {
+                remove(ref(db, 'patients/' + key));
+            }
+        }
+
+        window.resetPatientForm = function() {
+            document.getElementById('patientFirebaseKey').value = '';
+        }
+
+        // --- MODULE 2 LOGIC: POINTS EARNED ---
+        document.getElementById('earnForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const txnData = {
+                profileNumber: document.getElementById('earnProfileNumber').value,
+                reason: document.getElementById('earnReason').value,
+                date: document.getElementById('earnDate').value,
+                description: document.getElementById('earnDescription').value,
+                amountEarned: Number(document.getElementById('amountEarned').value),
+                expiryDate: document.getElementById('earnExpiryDate').value,
+                msgSent: document.getElementById('msgSent').value,
+                redeemed: document.getElementById('earnRedeemed').value
+            };
+            push(ref(db, 'transactionsEarned'), txnData);
+            this.reset();
+        });
+
+        const earnRef = ref(db, 'transactionsEarned');
+        onValue(earnRef, (snapshot) => {
+            window.earnDataCache = snapshot.val();
+            renderEarnTable(window.earnDataCache);
+        });
+
+        window.renderEarnTable = function(data) {
+            const tbody = document.querySelector('#earnTable tbody');
+            tbody.innerHTML = '';
+            if(data) {
+                Object.values(data).forEach(t => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${t.profileNumber}</td>
+                            <td>${t.reason}</td>
+                            <td>${t.date}</td>
+                            <td>${t.description}</td>
+                            <td>${t.amountEarned}</td>
+                            <td>-</td>
+                            <td>${t.expiryDate}</td>
+                            <td>${t.redeemed}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        window.filterTransactions = function() {
+            const query = document.getElementById('searchTxn').value.toLowerCase();
+            const reasonFilter = document.getElementById('filterReason').value;
+            if(!window.earnDataCache) return;
+            
+            const filtered = {};
+            Object.keys(window.earnDataCache).forEach(k => {
+                const item = window.earnDataCache[k];
+                const matchesSearch = item.profileNumber.toLowerCase().includes(query) || (item.description && item.description.toLowerCase().includes(query));
+                const matchesReason = !reasonFilter || item.reason === reasonFilter;
+                if(matchesSearch && matchesReason) filtered[k] = item;
+            });
+            renderEarnTable(filtered);
+        }
+
+        // --- MODULE 3 LOGIC: REDEEMED POINTS ---
+        window.updateRedemptionAmount = function() {
+            const select = document.getElementById('redOption');
+            const amt = select.options[select.selectedIndex].getAttribute('data-amt');
+            document.getElementById('redAmount').value = amt;
+        }
+        document.addEventListener("DOMContentLoaded", () => { updateRedemptionAmount(); });
+
+        document.getElementById('redeemForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const redeemData = {
+                profileNumber: document.getElementById('redProfileNumber').value,
+                redemptionOption: document.getElementById('redOption').value,
+                transactionDescription: document.getElementById('redDescription').value,
+                date: document.getElementById('redDate').value,
+                amount: Number(document.getElementById('redAmount').value),
+                redeemedBy: document.getElementById('redeemedBy').value,
+                redeemedFlag: document.getElementById('redeemedFlag').value
+            };
+            push(ref(db, 'transactionsRedeemed'), redeemData);
+            this.reset();
+            updateRedemptionAmount();
+        });
+
+        const redeemRef = ref(db, 'transactionsRedeemed');
+        onValue(redeemRef, (snapshot) => {
+            const data = snapshot.val();
+            const tbody = document.querySelector('#redeemTable tbody');
+            tbody.innerHTML = '';
+            if(data) {
+                Object.values(data).forEach(r => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${r.profileNumber}</td>
+                            <td>${r.redemptionOption}</td>
+                            <td>${r.transactionDescription}</td>
+                            <td>${r.date}</td>
+                            <td>${r.amount}</td>
+                            <td>${r.redeemedBy}</td>
+                            <td>${r.redeemedFlag}</td>
+                        </tr>
+                    `;
+                });
+            }
+        });
+
+        // --- CSV BULK UTILITIES ---
+        window.uploadCSV = function() {
+            const fileInput = document.getElementById('csvFileInput');
+            if(fileInput.files.length === 0) return alert("Please select a CSV file first.");
+            Papa.parse(fileInput.files[0], {
+                header: true,
+                complete: function(results) {
+                    results.data.forEach(row => {
+                        if(row.profileNumber) {
+                            push(ref(db, 'patients'), row);
+                        }
+                    });
+                    alert("Bulk upload completed successfully!");
+                }
+            });
+        }
+
+        window.downloadCSV = function() {
+            get(ref(db, 'patients')).then((snapshot) => {
+                if(snapshot.exists()) {
+                    const data = Object.values(snapshot.val());
+                    const csv = Papa.unparse(data);
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.setAttribute("download", "patients_profiles.csv");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
