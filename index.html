@@ -542,8 +542,20 @@
         document.getElementById('patientForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const key = document.getElementById('patientFirebaseKey').value;
+            const inputProfileNo = document.getElementById('profileNumber').value.trim();
+
+            // Primary Key Validation Rule: Check if Profile Number already exists
+            const isDuplicate = Object.entries(patientsCache).some(([existingKey, p]) => {
+                return p.profileNumber && p.profileNumber.trim() === inputProfileNo && existingKey !== key;
+            });
+
+            if (isDuplicate) {
+                alert(`Error: Profile Number "${inputProfileNo}" already exists in the system. Profile numbers must be unique.`);
+                return;
+            }
+
             const patientData = {
-                profileNumber: document.getElementById('profileNumber').value,
+                profileNumber: inputProfileNo,
                 nameEn: document.getElementById('nameEn').value,
                 nameAr: document.getElementById('nameAr').value,
                 mobileNumber: document.getElementById('mobileNumber').value,
@@ -825,25 +837,30 @@
                         jsonRows.forEach(row => {
                             const profileNo = row['Profile #'] || row['profileNumber'];
                             if(profileNo) {
-                                const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
-                                const rawFirstTest = row['First Order Date'] || row['First Test Date'] || row['firstTestDate'];
+                                const profileStr = String(profileNo).trim();
+                                // Skip duplicates during bulk import
+                                const exists = Object.values(patientsCache).some(p => p.profileNumber && p.profileNumber.trim() === profileStr);
+                                if (!exists) {
+                                    const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
+                                    const rawFirstTest = row['First Order Date'] || row['First Test Date'] || row['firstTestDate'];
 
-                                const patientRecord = {
-                                    profileNumber: String(profileNo).trim(),
-                                    nameEn: row['Name (EN)'] || row['nameEn'] || '',
-                                    nameAr: row['Name (AR)'] || row['nameAr'] || '',
-                                    mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || ''),
-                                    dob: formatExcelDate(rawDob),
-                                    gender: row['Gender'] || row['gender'] || 'Male',
-                                    firstTestDate: formatExcelDate(rawFirstTest),
-                                    classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
-                                    subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
-                                };
-                                push(ref(db, 'patients'), patientRecord);
-                                count++;
+                                    const patientRecord = {
+                                        profileNumber: profileStr,
+                                        nameEn: row['Name (EN)'] || row['nameEn'] || '',
+                                        nameAr: row['Name (AR)'] || row['nameAr'] || '',
+                                        mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || ''),
+                                        dob: formatExcelDate(rawDob),
+                                        gender: row['Gender'] || row['gender'] || 'Male',
+                                        firstTestDate: formatExcelDate(rawFirstTest),
+                                        classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
+                                        subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
+                                    };
+                                    push(ref(db, 'patients'), patientRecord);
+                                    count++;
+                                }
                             }
                         });
-                        alert(`Successfully imported ${count} records from Excel!`);
+                        alert(`Successfully imported ${count} new records from Excel! (Duplicates skipped)`);
                         fileInput.value = '';
                     } catch (err) {
                         console.error(err);
@@ -859,25 +876,29 @@
                         results.data.forEach(row => {
                             const profileNo = row['Profile #'] || row['profileNumber'];
                             if(profileNo) {
-                                const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
-                                const rawFirstTest = row['First Order Date'] || row['First Test Date'] || row['firstTestDate'];
+                                const profileStr = String(profileNo).trim();
+                                const exists = Object.values(patientsCache).some(p => p.profileNumber && p.profileNumber.trim() === profileStr);
+                                if (!exists) {
+                                    const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
+                                    const rawFirstTest = row['First Order Date'] || row['First Test Date'] || row['firstTestDate'];
 
-                                const patientRecord = {
-                                    profileNumber: String(profileNo).trim(),
-                                    nameEn: row['Name (EN)'] || row['nameEn'] || '',
-                                    nameAr: row['Name (AR)'] || row['nameAr'] || '',
-                                    mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || ''),
-                                    dob: formatExcelDate(rawDob),
-                                    gender: row['Gender'] || row['gender'] || 'Male',
-                                    firstTestDate: formatExcelDate(rawFirstTest),
-                                    classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
-                                    subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
-                                };
-                                push(ref(db, 'patients'), patientRecord);
-                                count++;
+                                    const patientRecord = {
+                                        profileNumber: profileStr,
+                                        nameEn: row['Name (EN)'] || row['nameEn'] || '',
+                                        nameAr: row['Name (AR)'] || row['nameAr'] || '',
+                                        mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || ''),
+                                        dob: formatExcelDate(rawDob),
+                                        gender: row['Gender'] || row['gender'] || 'Male',
+                                        firstTestDate: formatExcelDate(rawFirstTest),
+                                        classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
+                                        subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
+                                    };
+                                    push(ref(db, 'patients'), patientRecord);
+                                    count++;
+                                }
                             }
                         });
-                        alert(`Successfully imported ${count} records from CSV!`);
+                        alert(`Successfully imported ${count} new records from CSV! (Duplicates skipped)`);
                         fileInput.value = '';
                     }
                 });
