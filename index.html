@@ -136,6 +136,8 @@
                                     <th>DOB / Age</th>
                                     <th>Class</th>
                                     <th>Sub. Type</th>
+                                    <th>Total Earned</th>
+                                    <th>Total Redeemed</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -294,21 +296,75 @@
     <!-- Firebase SDK Setup -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, remove, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // TODO: Replace with your actual Firebase project credentials
         const firebaseConfig = {
-  apiKey: "AIzaSyBJu6lgAwU2VhaYX7zLazf8yG7qRMp90r8",
-  authDomain: "biosenses-loyalty.firebaseapp.com",
-  databaseURL: "https://biosenses-loyalty-default-rtdb.firebaseio.com",
-  projectId: "biosenses-loyalty",
-  storageBucket: "biosenses-loyalty.firebasestorage.app",
-  messagingSenderId: "295583625121",
-  appId: "1:295583625121:web:195b5610c365fa41ce65e0"
-};
+            apiKey: "AIzaSyBJu6lgAwU2VhaYX7zLazf8yG7qRMp90r8",
+            authDomain: "biosenses-loyalty.firebaseapp.com",
+            databaseURL: "https://biosenses-loyalty-default-rtdb.firebaseio.com",
+            projectId: "biosenses-loyalty",
+            storageBucket: "biosenses-loyalty.firebasestorage.app",
+            messagingSenderId: "295583625121",
+            appId: "1:295583625121:web:195b5610c365fa41ce65e0"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+
+        // Global data caches for aggregating calculations
+        let patientsCache = {};
+        let earnCache = {};
+        let redeemCache = {};
+
+        function refreshAllData() {
+            const tbody = document.querySelector('#patientsTable tbody');
+            tbody.innerHTML = '';
+            
+            if(patientsCache) {
+                Object.keys(patientsCache).forEach(key => {
+                    const p = patientsCache[key];
+                    const profileNo = p.profileNumber ? p.profileNumber.trim() : '';
+                    const age = p.dob ? new Date().getFullYear() - new Date(p.dob).getFullYear() : 'N/A';
+
+                    // Calculate total points earned for this profile number
+                    let totalEarned = 0;
+                    if(earnCache) {
+                        Object.values(earnCache).forEach(t => {
+                            if(t.profileNumber && t.profileNumber.trim() === profileNo) {
+                                totalEarned += Number(t.amountEarned) || 0;
+                            }
+                        });
+                    }
+
+                    // Calculate total points redeemed for this profile number
+                    let totalRedeemed = 0;
+                    if(redeemCache) {
+                        Object.values(redeemCache).forEach(r => {
+                            if(r.profileNumber && r.profileNumber.trim() === profileNo) {
+                                totalRedeemed += Number(r.amount) || 0;
+                            }
+                        });
+                    }
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${p.profileNumber}</td>
+                            <td>${p.nameEn}</td>
+                            <td>${p.mobileNumber}</td>
+                            <td>${p.dob} (${age} yrs)</td>
+                            <td>${p.classification}</td>
+                            <td>${p.subscriptionType}</td>
+                            <td><span class="badge bg-success">${totalEarned}</span></td>
+                            <td><span class="badge bg-danger">${totalRedeemed}</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="editPatient('${key}', ${JSON.stringify(p).replace(/"/g, '&quot;')})">Edit</button>
+                                <button class="btn btn-sm btn-danger" onclick="deletePatient('${key}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
 
         // --- MODULE 1 LOGIC: PATIENTS ---
         window.calculateDerivedFields = function() {
@@ -321,7 +377,6 @@
             if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
                 age--;
             }
-            // Logic handled natively or stored if required
         }
 
         document.getElementById('patientForm').addEventListener('submit', function(e) {
@@ -354,32 +409,23 @@
             document.getElementById('patientFirebaseKey').value = '';
         });
 
-        // Realtime Listener for Patients
-        const patientsRef = ref(db, 'patients');
-        onValue(patientsRef, (snapshot) => {
-            const data = snapshot.val();
-            const tbody = document.querySelector('#patientsTable tbody');
-            tbody.innerHTML = '';
-            if(data) {
-                Object.keys(data).forEach(key => {
-                    const p = data[key];
-                    const age = p.dob ? new Date().getFullYear() - new Date(p.dob).getFullYear() : 'N/A';
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${p.profileNumber}</td>
-                            <td>${p.nameEn}</td>
-                            <td>${p.mobileNumber}</td>
-                            <td>${p.dob} (${age} yrs)</td>
-                            <td>${p.classification}</td>
-                            <td>${p.subscriptionType}</td>
-                            <td>
-                                <button class="btn btn-sm btn-warning" onclick="editPatient('${key}', ${JSON.stringify(p).replace(/"/g, '&quot;')})">Edit</button>
-                                <button class="btn btn-sm btn-danger" onclick="deletePatient('${key}')">Delete</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
+        // Listeners keeping caches updated
+        onValue(ref(db, 'patients'), (snapshot) => {
+            patientsCache = snapshot.val() || {};
+            refreshAllData();
+        });
+
+        onValue(ref(db, 'transactionsEarned'), (snapshot) => {
+            earnCache = snapshot.val() || {};
+            window.earnDataCache = earnCache;
+            renderEarnTable(earnCache);
+            refreshAllData();
+        });
+
+        onValue(ref(db, 'transactionsRedeemed'), (snapshot) => {
+            redeemCache = snapshot.val() || {};
+            renderRedeemTable(redeemCache);
+            refreshAllData();
         });
 
         window.editPatient = function(key, p) {
@@ -425,12 +471,6 @@
             };
             push(ref(db, 'transactionsEarned'), txnData);
             this.reset();
-        });
-
-        const earnRef = ref(db, 'transactionsEarned');
-        onValue(earnRef, (snapshot) => {
-            window.earnDataCache = snapshot.val();
-            renderEarnTable(window.earnDataCache);
         });
 
         window.renderEarnTable = function(data) {
@@ -493,9 +533,7 @@
             updateRedemptionAmount();
         });
 
-        const redeemRef = ref(db, 'transactionsRedeemed');
-        onValue(redeemRef, (snapshot) => {
-            const data = snapshot.val();
+        window.renderRedeemTable = function(data) {
             const tbody = document.querySelector('#redeemTable tbody');
             tbody.innerHTML = '';
             if(data) {
@@ -513,7 +551,7 @@
                     `;
                 });
             }
-        });
+        }
 
         // --- CSV BULK UTILITIES ---
         window.uploadCSV = function() {
