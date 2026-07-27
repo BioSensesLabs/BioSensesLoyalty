@@ -29,6 +29,9 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="redeem-tab" data-bs-toggle="tab" data-bs-target="#redeem" type="button">Redeemed Points</button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="birthdays-tab" data-bs-toggle="tab" data-bs-target="#birthdays" type="button">Upcoming Birthdays</button>
+            </li>
         </ul>
 
         <div class="tab-content" id="portalContent">
@@ -288,6 +291,30 @@
                 </div>
             </div>
 
+            <!-- MODULE 4: UPCOMING BIRTHDAYS -->
+            <div class="tab-pane fade" id="birthdays" role="tabpanel">
+                <div class="card shadow-sm p-4">
+                    <h4 class="mb-3">Upcoming Patient Birthdays</h4>
+                    <p class="text-muted">Profiles ordered sequentially by their upcoming birthday anniversary from today.</p>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="birthdaysTable">
+                            <thead>
+                                <tr>
+                                    <th>Profile #</th>
+                                    <th>Name (EN)</th>
+                                    <th>Mobile Number</th>
+                                    <th>Date of Birth</th>
+                                    <th>Upcoming Birthday</th>
+                                    <th>Days Until Birthday</th>
+                                    <th>Turning Age</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -325,6 +352,11 @@
         }
 
         function refreshAllData() {
+            refreshPatientsTable();
+            refreshBirthdaysTable();
+        }
+
+        function refreshPatientsTable() {
             const tbody = document.querySelector('#patientsTable tbody');
             tbody.innerHTML = '';
             
@@ -377,6 +409,66 @@
                     `;
                 });
             }
+        }
+
+        function refreshBirthdaysTable() {
+            const tbody = document.querySelector('#birthdaysTable tbody');
+            tbody.innerHTML = '';
+
+            if (!patientsCache) return;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let birthdayList = [];
+
+            Object.values(patientsCache).forEach(p => {
+                if (!p.dob) return;
+                const dobDate = new Date(p.dob);
+                if (isNaN(dobDate)) return;
+
+                let bYear = today.getFullYear();
+                let nextBday = new Date(bYear, dobDate.getMonth(), dobDate.getDate());
+                nextBday.setHours(0, 0, 0, 0);
+
+                if (nextBday < today) {
+                    bYear++;
+                    nextBday = new Date(bYear, dobDate.getMonth(), dobDate.getDate());
+                    nextBday.setHours(0, 0, 0, 0);
+                }
+
+                const diffTime = nextBday - today;
+                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                const turningAge = bYear - dobDate.getFullYear();
+
+                birthdayList.push({
+                    profileNumber: p.profileNumber || '',
+                    nameEn: p.nameEn || '',
+                    mobileNumber: p.mobileNumber || '',
+                    dob: p.dob,
+                    nextBdayFormatted: nextBday.toISOString().split('T')[0],
+                    diffDays: diffDays,
+                    turningAge: turningAge
+                });
+            });
+
+            // Sort by earliest upcoming birthday (ascending by diffDays)
+            birthdayList.sort((a, b) => a.diffDays - b.diffDays);
+
+            birthdayList.forEach(item => {
+                const badgeClass = item.diffDays === 0 ? 'bg-success' : (item.diffDays <= 7 ? 'bg-warning text-dark' : 'bg-secondary');
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.profileNumber}</td>
+                        <td>${item.nameEn}</td>
+                        <td>${item.mobileNumber}</td>
+                        <td>${item.dob}</td>
+                        <td>${item.nextBdayFormatted}</td>
+                        <td><span class="badge ${badgeClass}">${item.diffDays === 0 ? 'Today! 🎉' : item.diffDays + ' days'}</span></td>
+                        <td>${item.turningAge} yrs</td>
+                    </tr>
+                `;
+            });
         }
 
         // --- MODULE 1 LOGIC: PATIENTS ---
@@ -432,13 +524,13 @@
             earnCache = snapshot.val() || {};
             window.earnDataCache = earnCache;
             renderEarnTable(earnCache);
-            refreshAllData();
+            refreshPatientsTable();
         });
 
         onValue(ref(db, 'transactionsRedeemed'), (snapshot) => {
             redeemCache = snapshot.val() || {};
             renderRedeemTable(redeemCache);
-            refreshAllData();
+            refreshPatientsTable();
         });
 
         window.editPatient = function(key, p) {
@@ -474,7 +566,6 @@
             e.preventDefault();
             const profileNo = document.getElementById('earnProfileNumber').value;
 
-            // Validate if profile exists
             if (!isProfileValid(profileNo)) {
                 alert(`Validation Error: Profile number "${profileNo}" does not exist in the system. Please register the patient first.`);
                 return;
@@ -543,13 +634,11 @@
             const profileNo = document.getElementById('redProfileNumber').value.trim();
             const targetAmount = Number(document.getElementById('redAmount').value);
 
-            // Validate if profile exists
             if (!isProfileValid(profileNo)) {
                 alert(`Validation Error: Profile number "${profileNo}" does not exist in the system. Please register the patient first.`);
                 return;
             }
 
-            // Calculate current balance for the given profile number
             let totalEarned = 0;
             if (earnCache) {
                 Object.values(earnCache).forEach(t => {
@@ -570,7 +659,6 @@
 
             const currentBalance = totalEarned - totalRedeemed;
 
-            // Prevent redemption if balance is less than target amount
             if (currentBalance < targetAmount) {
                 alert(`Insufficient points balance! Current balance is ${currentBalance} points, but ${targetAmount} points are required.`);
                 return;
