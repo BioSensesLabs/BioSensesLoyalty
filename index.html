@@ -138,6 +138,7 @@
                                     <th>Sub. Type</th>
                                     <th>Total Earned</th>
                                     <th>Total Redeemed</th>
+                                    <th>Total Balance</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -346,6 +347,10 @@
                         });
                     }
 
+                    // Calculate total balance
+                    const totalBalance = totalEarned - totalRedeemed;
+                    const balanceBadgeClass = totalBalance >= 0 ? 'bg-primary' : 'bg-dark';
+
                     tbody.innerHTML += `
                         <tr>
                             <td>${p.profileNumber}</td>
@@ -356,6 +361,7 @@
                             <td>${p.subscriptionType}</td>
                             <td><span class="badge bg-success">${totalEarned}</span></td>
                             <td><span class="badge bg-danger">${totalRedeemed}</span></td>
+                            <td><span class="badge ${balanceBadgeClass}">${totalBalance}</span></td>
                             <td>
                                 <button class="btn btn-sm btn-warning" onclick="editPatient('${key}', ${JSON.stringify(p).replace(/"/g, '&quot;')})">Edit</button>
                                 <button class="btn btn-sm btn-danger" onclick="deletePatient('${key}')">Delete</button>
@@ -519,12 +525,42 @@
 
         document.getElementById('redeemForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const profileNo = document.getElementById('redProfileNumber').value.trim();
+            const targetAmount = Number(document.getElementById('redAmount').value);
+
+            // Calculate current balance for the given profile number
+            let totalEarned = 0;
+            if (earnCache) {
+                Object.values(earnCache).forEach(t => {
+                    if (t.profileNumber && t.profileNumber.trim() === profileNo) {
+                        totalEarned += Number(t.amountEarned) || 0;
+                    }
+                });
+            }
+
+            let totalRedeemed = 0;
+            if (redeemCache) {
+                Object.values(redeemCache).forEach(r => {
+                    if (r.profileNumber && r.profileNumber.trim() === profileNo) {
+                        totalRedeemed += Number(r.amount) || 0;
+                    }
+                });
+            }
+
+            const currentBalance = totalEarned - totalRedeemed;
+
+            // Prevent redemption if balance is less than target amount
+            if (currentBalance < targetAmount) {
+                alert(`Insufficient points balance! Current balance is ${currentBalance} points, but ${targetAmount} points are required.`);
+                return;
+            }
+
             const redeemData = {
-                profileNumber: document.getElementById('redProfileNumber').value,
+                profileNumber: profileNo,
                 redemptionOption: document.getElementById('redOption').value,
                 transactionDescription: document.getElementById('redDescription').value,
                 date: document.getElementById('redDate').value,
-                amount: Number(document.getElementById('redAmount').value),
+                amount: targetAmount,
                 redeemedBy: document.getElementById('redeemedBy').value,
                 redeemedFlag: document.getElementById('redeemedFlag').value
             };
