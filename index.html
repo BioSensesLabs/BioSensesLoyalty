@@ -116,15 +116,16 @@
                         </div>
                     </form>
                     <hr class="my-4">
-                    <div class="row">
-                        <div class="col-md-4 mb-2">
+                    <div class="row align-items-end">
+                        <div class="col-md-3 mb-2">
                             <label class="form-label fw-bold">Bulk Upload (CSV / Excel)</label>
                             <input type="file" id="fileInput" class="form-control" accept=".csv, .xlsx, .xls">
                         </div>
-                        <div class="col-md-8 d-flex align-items-end mb-2">
-                            <button class="btn btn-outline-primary me-2" onclick="uploadFile()">Upload File</button>
-                            <button class="btn btn-outline-secondary me-2" onclick="downloadCSV()">Download CSV</button>
+                        <div class="col-md-9 mb-2 d-flex flex-wrap gap-2">
+                            <button class="btn btn-outline-primary" onclick="uploadFile()">Upload File</button>
+                            <button class="btn btn-outline-secondary" onclick="downloadCSV()">Download CSV</button>
                             <button class="btn btn-primary" onclick="downloadAllDataExcel()">📥 Download All Data (Excel)</button>
+                            <button class="btn btn-danger ms-auto" onclick="clearDatabase()">⚠️ Clear Database</button>
                         </div>
                     </div>
                 </div>
@@ -788,31 +789,47 @@
             });
         }
 
-        // Multi-sheet Excel workbook export across all tabs
         window.downloadAllDataExcel = function() {
             const wb = XLSX.utils.book_new();
 
-            // 1. Patients Sheet
             const patientsData = patientsCache ? Object.values(patientsCache) : [];
             const wsPatients = XLSX.utils.json_to_sheet(patientsData);
             XLSX.utils.book_append_sheet(wb, wsPatients, "Patients Profile");
 
-            // 2. Earned Transactions Sheet
             const earnData = earnCache ? Object.values(earnCache) : [];
             const wsEarn = XLSX.utils.json_to_sheet(earnData);
             XLSX.utils.book_append_sheet(wb, wsEarn, "Points Earned");
 
-            // 3. Redeemed Transactions Sheet
             const redeemData = redeemCache ? Object.values(redeemCache) : [];
             const wsRedeem = XLSX.utils.json_to_sheet(redeemData);
             XLSX.utils.book_append_sheet(wb, wsRedeem, "Redeemed Points");
 
-            // 4. Upcoming Birthdays Sheet
             const wsBirthdays = XLSX.utils.json_to_sheet(birthdaysCacheList);
             XLSX.utils.book_append_sheet(wb, wsBirthdays, "Upcoming Birthdays");
 
-            // Trigger file download
             XLSX.writeFile(wb, "BioSenses_Loyalty_Complete_Data.xlsx");
+        }
+
+        // --- CLEAR DATABASE WITH PASSWORD ---
+        window.clearDatabase = function() {
+            const pwd = prompt("⚠️ WARNING: This will delete ALL patients and transactions permanently.\nEnter password to confirm:");
+            if (pwd === null) return; // Cancelled
+            if (pwd !== "828282") {
+                alert("Incorrect password! Action cancelled.");
+                return;
+            }
+
+            // Wipe nodes in Firebase
+            Promise.all([
+                set(ref(db, 'patients'), null),
+                set(ref(db, 'transactionsEarned'), null),
+                set(ref(db, 'transactionsRedeemed'), null)
+            ]).then(() => {
+                alert("Database has been completely cleared and reset successfully.");
+            }).catch((error) => {
+                console.error("Error clearing database: ", error);
+                alert("An error occurred while clearing the database.");
+            });
         }
     </script>
 </body>
