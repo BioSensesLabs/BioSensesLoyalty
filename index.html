@@ -18,6 +18,23 @@
         .table th i { font-size: 0.8rem; margin-left: 4px; color: #6c757d; }
         .action-icon { cursor: pointer; font-size: 1.1rem; transition: transform 0.1s; }
         .action-icon:hover { transform: scale(1.2); }
+        
+        /* Friendlier Card & Form styling */
+        .patient-card {
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fdfefe 0%, #f4f6f9 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        .form-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 6px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -49,28 +66,40 @@
             
             <!-- MODULE 1: PATIENTS PROFILE -->
             <div class="tab-pane fade show active" id="patients" role="tabpanel">
-                <div class="card shadow-sm p-4 mb-4">
-                    <h4 class="mb-3">Manage Patients Profile</h4>
+                <div class="card patient-card p-4 mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary text-white rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <i class="bi bi-person-plus-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 text-dark fw-bold">Manage Patients Profile</h4>
+                            <small class="text-muted">Register and maintain patient demographic and loyalty details securely.</small>
+                        </div>
+                    </div>
+
                     <form id="patientForm" class="row g-3">
                         <input type="hidden" id="patientFirebaseKey">
+                        
+                        <div class="col-12"><div class="form-section-title">1. Identification & Personal Info</div></div>
                         <div class="col-md-3">
-                            <label class="form-label">Profile Number</label>
-                            <input type="text" class="form-control" id="profileNumber" required>
+                            <label class="form-label fw-semibold">Profile Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="profileNumber" placeholder="e.g., P-1001" required>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Name (EN)</label>
-                            <input type="text" class="form-control" id="nameEn" required>
+                            <label class="form-label fw-semibold">Name (EN) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nameEn" placeholder="Full name in English" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Name (AR)</label>
-                            <input type="text" class="form-control" id="nameAr">
+                            <input type="text" class="form-control" id="nameAr" placeholder="الاسم بالعربي">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Mobile Number</label>
-                            <input type="text" class="form-control" id="mobileNumber" required>
+                            <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="mobileNumber" placeholder="+962..." required>
                         </div>
+
                         <div class="col-md-3">
-                            <label class="form-label">Date of Birth</label>
+                            <label class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="dob" required onchange="calculateDerivedFields()">
                         </div>
                         <div class="col-md-3">
@@ -81,9 +110,17 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">First Test Date</label>
-                            <input type="date" class="form-control" id="firstTestDate">
+                            <label class="form-label">Nationality</label>
+                            <select class="form-select" id="nationality">
+                                <!-- Populated dynamically -->
+                            </select>
                         </div>
+                        <div class="col-md-3">
+                            <label class="form-label">E-mail Address</label>
+                            <input type="email" class="form-control" id="email" placeholder="patient@example.com">
+                        </div>
+
+                        <div class="col-12"><div class="form-section-title">2. Membership & Clinical Metrics</div></div>
                         <div class="col-md-3">
                             <label class="form-label">Classification</label>
                             <select class="form-select" id="classification">
@@ -94,67 +131,67 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Subscription Type</label>
-                            <select class="form-select" id="subscriptionType">
+                            <select class="form-select" id="subscriptionType" onchange="togglePremiumExpiryRequirement()">
                                 <option value="Basic">Basic</option>
                                 <option value="Premium">Premium</option>
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Loyalty Joining Date</label>
-                            <input type="date" class="form-control" id="loyaltyJoiningDate">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Premium Expiry Date</label>
+                            <label class="form-label" id="premiumExpiryLabel">Premium Expiry Date</label>
                             <input type="date" class="form-control" id="premiumExpiryDate">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">E-mail Address</label>
-                            <input type="email" class="form-control" id="email">
+                            <label class="form-label">First Test Date</label>
+                            <input type="date" class="form-control" id="firstTestDate">
                         </div>
+
                         <div class="col-md-3">
-                            <label class="form-label">Nationality</label>
-                            <input type="text" class="form-control" id="nationality">
+                            <label class="form-label">Loyalty Joining Date</label>
+                            <input type="date" class="form-control" id="loyaltyJoiningDate">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-5">
                             <label class="form-label">Referral (No / Name / Mobile)</label>
-                            <input type="text" class="form-control" id="referredBy">
+                            <input type="text" class="form-control" id="referredBy" placeholder="Source or referrer details">
                         </div>
-                        <div class="col-md-6 d-flex align-items-end">
-                            <button type="submit" class="btn btn-success me-2">Save Patient</button>
-                            <button type="reset" class="btn btn-secondary me-2" onclick="resetPatientForm()">Clear</button>
+
+                        <div class="col-md-4 d-flex align-items-end gap-2 mt-4">
+                            <button type="submit" class="btn btn-success flex-grow-1 py-2 fw-semibold shadow-sm"><i class="bi bi-check-circle me-1"></i> Save Patient</button>
+                            <button type="reset" class="btn btn-outline-secondary py-2 px-3" onclick="resetPatientForm()"><i class="bi bi-x-circle"></i></button>
                         </div>
                     </form>
-                    <hr class="my-4">
+                    
+                    <hr class="my-4 text-muted">
+                    
                     <div class="row align-items-end">
                         <div class="col-md-3 mb-2">
-                            <label class="form-label fw-bold">Bulk Upload (CSV / Excel)</label>
-                            <input type="file" id="fileInput" class="form-control" accept=".csv, .xlsx, .xls">
+                            <label class="form-label fw-bold text-secondary small">Bulk Upload (CSV / Excel)</label>
+                            <input type="file" id="fileInput" class="form-control form-control-sm" accept=".csv, .xlsx, .xls">
                         </div>
                         <div class="col-md-9 mb-2 d-flex flex-wrap gap-2">
-                            <button class="btn btn-outline-primary" onclick="uploadFile()">Upload File</button>
-                            <button class="btn btn-outline-secondary" onclick="downloadCSV()">Download CSV</button>
-                            <button class="btn btn-primary" onclick="downloadAllDataExcel()">📥 Download All Data (Excel)</button>
-                            <button class="btn btn-danger ms-auto" onclick="clearDatabase()">⚠️ Clear Database</button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="uploadFile()"><i class="bi bi-upload me-1"></i> Upload File</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="downloadCSV()"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Download CSV</button>
+                            <button class="btn btn-primary btn-sm" onclick="downloadAllDataExcel()"><i class="bi bi-file-earmark-excel me-1"></i> Download All Data (Excel)</button>
+                            <button class="btn btn-outline-danger btn-sm ms-auto" onclick="clearDatabase()"><i class="bi bi-trash me-1"></i> Clear Database</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Patients Table -->
-                <div class="card shadow-sm p-4">
+                <div class="card shadow-sm p-4 border-0 rounded-3">
                     <div class="row mb-3 align-items-center">
-                        <div class="col-md-6"><h5>Registered Patients</h5></div>
+                        <div class="col-md-6"><h5 class="fw-bold mb-0 text-secondary">Registered Patients</h5></div>
                         <div class="col-md-6">
-                            <input type="text" id="searchPatients" class="form-control" placeholder="Search patients by profile, name, mobile..." onkeyup="filterPatientsTable()">
+                            <input type="text" id="searchPatients" class="form-control form-control-sm" placeholder="Search patients by profile, name, mobile..." onkeyup="filterPatientsTable()">
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle" id="patientsTable">
+                        <table class="table table-striped table-hover align-middle small" id="patientsTable">
                             <thead>
                                 <tr>
                                     <th onclick="sortTable('patientsTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
                                     <th onclick="sortTable('patientsTable', 1)">Name (EN) <i class="bi bi-arrow-down-up"></i></th>
                                     <th onclick="sortTable('patientsTable', 2)">Mobile <i class="bi bi-arrow-down-up"></i></th>
-                                    <th onclick="sortTable('patientsTable', 3)">DOB / Age <i class="bi bi-arrow-down-up"></i></th>
+                                    <th onclick="sortTable('patientsTable', 3)">Age <i class="bi bi-arrow-down-up"></i></th>
                                     <th onclick="sortTable('patientsTable', 4)">Class <i class="bi bi-arrow-down-up"></i></th>
                                     <th onclick="sortTable('patientsTable', 5)">Sub. Type <i class="bi bi-arrow-down-up"></i></th>
                                     <th onclick="sortTable('patientsTable', 6)">Earned <i class="bi bi-arrow-down-up"></i></th>
@@ -171,8 +208,8 @@
 
             <!-- MODULE 2: POINTS EARNED -->
             <div class="tab-pane fade" id="earn" role="tabpanel">
-                <div class="card shadow-sm p-4 mb-4">
-                    <h4 class="mb-3">Add Points Transaction</h4>
+                <div class="card shadow-sm p-4 mb-4 border-0 rounded-3">
+                    <h4 class="mb-3 text-secondary fw-bold">Add Points Transaction</h4>
                     <form id="earnForm" class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Profile Number</label>
@@ -206,23 +243,19 @@
                             <label class="form-label">Msg Sent</label>
                             <select class="form-select" id="msgSent"><option>Yes</option><option>No</option></select>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Redeemed</label>
-                            <select class="form-select" id="earnRedeemed"><option>No</option><option>Yes</option></select>
-                        </div>
-                        <div class="col-md-12">
-                            <button type="submit" class="btn btn-primary">Add Earn Transaction</button>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Add Earn Transaction</button>
                         </div>
                     </form>
                 </div>
 
                 <!-- View Transactions -->
-                <div class="card shadow-sm p-4">
+                <div class="card shadow-sm p-4 border-0 rounded-3">
                     <div class="row mb-3 align-items-center">
-                        <div class="col-md-4"><h5>Transactions Ledger</h5></div>
-                        <div class="col-md-4"><input type="text" id="searchTxn" class="form-control" placeholder="Search profile/desc..." onkeyup="filterTransactions()"></div>
+                        <div class="col-md-4"><h5 class="fw-bold mb-0 text-secondary">Transactions Ledger</h5></div>
+                        <div class="col-md-4"><input type="text" id="searchTxn" class="form-control form-control-sm" placeholder="Search profile/desc..." onkeyup="filterTransactions()"></div>
                         <div class="col-md-4">
-                            <select id="filterReason" class="form-select" onchange="filterTransactions()">
+                            <select id="filterReason" class="form-select form-select-sm" onchange="filterTransactions()">
                                 <option value="">Filter by Reason...</option>
                                 <option>Spending</option><option>Referrals</option><option>Healthy Lifestyle</option>
                                 <option>Occasions</option><option>Health Achievement</option><option>Customer Experience</option>
@@ -231,7 +264,7 @@
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped align-middle" id="earnTable">
+                        <table class="table table-bordered table-striped align-middle small" id="earnTable">
                             <thead>
                                 <tr>
                                     <th onclick="sortTable('earnTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
@@ -239,9 +272,8 @@
                                     <th onclick="sortTable('earnTable', 2)">Date <i class="bi bi-arrow-down-up"></i></th>
                                     <th onclick="sortTable('earnTable', 3)">Description <i class="bi bi-arrow-down-up"></i></th>
                                     <th onclick="sortTable('earnTable', 4)">Earned <i class="bi bi-arrow-down-up"></i></th>
-                                    <th onclick="sortTable('earnTable', 5)">Wallet <i class="bi bi-arrow-down-up"></i></th>
-                                    <th onclick="sortTable('earnTable', 6)">Expiry <i class="bi bi-arrow-down-up"></i></th>
-                                    <th onclick="sortTable('earnTable', 7)">Redeemed <i class="bi bi-arrow-down-up"></i></th>
+                                    <th onclick="sortTable('earnTable', 5)">Expiry <i class="bi bi-arrow-down-up"></i></th>
+                                    <th onclick="sortTable('earnTable', 6)">Msg Sent <i class="bi bi-arrow-down-up"></i></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -252,8 +284,8 @@
 
             <!-- MODULE 3: REDEEMED POINTS -->
             <div class="tab-pane fade" id="redeem" role="tabpanel">
-                <div class="card shadow-sm p-4 mb-4">
-                    <h4 class="mb-3">Redeem Points</h4>
+                <div class="card shadow-sm p-4 mb-4 border-0 rounded-3">
+                    <h4 class="mb-3 text-secondary fw-bold">Redeem Points</h4>
                     <form id="redeemForm" class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label">Profile Number</label>
@@ -288,24 +320,20 @@
                             <label class="form-label">Redeemed By</label>
                             <input type="text" class="form-control" id="redeemedBy" required>
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Redeemed Flag</label>
-                            <select class="form-select" id="redeemedFlag"><option>Yes</option><option>No</option></select>
-                        </div>
-                        <div class="col-md-12">
-                            <button type="submit" class="btn btn-danger">Process Redemption</button>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-danger w-100">Process Redemption</button>
                         </div>
                     </form>
                 </div>
 
                 <!-- Redeemed Table -->
-                <div class="card shadow-sm p-4">
+                <div class="card shadow-sm p-4 border-0 rounded-3">
                     <div class="row mb-3 align-items-center">
-                        <div class="col-md-6"><h5>Redemption Records</h5></div>
-                        <div class="col-md-6"><input type="text" id="searchRedeem" class="form-control" placeholder="Search redemptions..." onkeyup="filterRedeemTable()"></div>
+                        <div class="col-md-6"><h5 class="fw-bold mb-0 text-secondary">Redemption Records</h5></div>
+                        <div class="col-md-6"><input type="text" id="searchRedeem" class="form-control form-control-sm" placeholder="Search redemptions..." onkeyup="filterRedeemTable()"></div>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-bordered align-middle" id="redeemTable">
+                        <table class="table table-bordered align-middle small" id="redeemTable">
                             <thead>
                                 <tr>
                                     <th onclick="sortTable('redeemTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
@@ -314,7 +342,6 @@
                                     <th onclick="sortTable('redeemTable', 3)">Date <i class="bi bi-arrow-down-up"></i></th>
                                     <th onclick="sortTable('redeemTable', 4)">Amount <i class="bi bi-arrow-down-up"></i></th>
                                     <th onclick="sortTable('redeemTable', 5)">Redeemed By <i class="bi bi-arrow-down-up"></i></th>
-                                    <th onclick="sortTable('redeemTable', 6)">Flag <i class="bi bi-arrow-down-up"></i></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -325,18 +352,18 @@
 
             <!-- MODULE 4: UPCOMING BIRTHDAYS -->
             <div class="tab-pane fade" id="birthdays" role="tabpanel">
-                <div class="card shadow-sm p-4">
+                <div class="card shadow-sm p-4 border-0 rounded-3">
                     <div class="row mb-3 align-items-center">
                         <div class="col-md-6">
-                            <h4 class="mb-1">Upcoming Patient Birthdays</h4>
-                            <p class="text-muted mb-0">Profiles ordered sequentially by their upcoming birthday anniversary from today.</p>
+                            <h4 class="mb-1 fw-bold text-secondary">Upcoming Patient Birthdays</h4>
+                            <p class="text-muted mb-0 small">Profiles ordered sequentially by their upcoming birthday anniversary from today.</p>
                         </div>
                         <div class="col-md-6">
-                            <input type="text" id="searchBirthdays" class="form-control" placeholder="Search birthdays..." onkeyup="filterBirthdaysTable()">
+                            <input type="text" id="searchBirthdays" class="form-control form-control-sm" placeholder="Search birthdays..." onkeyup="filterBirthdaysTable()">
                         </div>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover align-middle" id="birthdaysTable">
+                        <table class="table table-striped table-hover align-middle small" id="birthdaysTable">
                             <thead>
                                 <tr>
                                     <th onclick="sortTable('birthdaysTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
@@ -384,6 +411,58 @@
         let redeemCache = {};
         let birthdaysCacheList = [];
 
+        // Complete country list with Jordan default
+        const countriesList = [
+            "Jordan", "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", 
+            "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", 
+            "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", 
+            "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", 
+            "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia", "Denmark", "Djibouti", "Dominica", 
+            "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", 
+            "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", 
+            "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", 
+            "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Kazakhstan", "Kenya", "Kiribati", "Korea, North", 
+            "Korea, South", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", 
+            "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", 
+            "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", 
+            "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", 
+            "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", 
+            "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", 
+            "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", 
+            "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", 
+            "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", 
+            "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", 
+            "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", 
+            "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+        ];
+
+        function populateCountries() {
+            const select = document.getElementById('nationality');
+            select.innerHTML = '';
+            countriesList.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.text = c;
+                if (c === "Jordan") opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+        document.addEventListener("DOMContentLoaded", () => { populateCountries(); togglePremiumExpiryRequirement(); });
+
+        window.togglePremiumExpiryRequirement = function() {
+            const subType = document.getElementById('subscriptionType').value;
+            const expiryInput = document.getElementById('premiumExpiryDate');
+            const label = document.getElementById('premiumExpiryLabel');
+            if (subType === 'Premium') {
+                expiryInput.required = true;
+                label.innerHTML = 'Premium Expiry Date <span class="text-danger">*</span>';
+            } else {
+                expiryInput.required = false;
+                label.innerHTML = 'Premium Expiry Date';
+                expiryInput.value = '';
+            }
+        }
+
         function isProfileValid(profileNo) {
             if (!profileNo || !patientsCache) return false;
             const target = profileNo.trim();
@@ -403,7 +482,7 @@
                 Object.keys(patientsCache).forEach(key => {
                     const p = patientsCache[key];
                     const profileNo = p.profileNumber ? p.profileNumber.trim() : '';
-                    const age = p.dob ? new Date().getFullYear() - new Date(p.dob).getFullYear() : 'N/A';
+                    const age = p.dob ? (new Date().getFullYear() - new Date(p.dob).getFullYear()) + ' yrs' : 'N/A';
 
                     let totalEarned = 0;
                     if(earnCache) {
@@ -431,7 +510,7 @@
                             <td>${p.profileNumber || ''}</td>
                             <td>${p.nameEn || ''}</td>
                             <td>${p.mobileNumber || ''}</td>
-                            <td>${p.dob || ''} (${age} yrs)</td>
+                            <td>${age}</td>
                             <td>${p.classification || ''}</td>
                             <td>${p.subscriptionType || 'Basic'}</td>
                             <td><span class="badge bg-success">${totalEarned}</span></td>
@@ -530,13 +609,6 @@
         window.calculateDerivedFields = function() {
             const dobVal = document.getElementById('dob').value;
             if(!dobVal) return;
-            const dobDate = new Date(dobVal);
-            const today = new Date();
-            let age = today.getFullYear() - dobDate.getFullYear();
-            const m = today.getMonth() - dobDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < dobDate.getDate())) {
-                age--;
-            }
         }
 
         document.getElementById('patientForm').addEventListener('submit', function(e) {
@@ -579,6 +651,8 @@
             }
             this.reset();
             document.getElementById('patientFirebaseKey').value = '';
+            populateCountries();
+            togglePremiumExpiryRequirement();
         });
 
         onValue(ref(db, 'patients'), (snapshot) => {
@@ -607,14 +681,15 @@
             document.getElementById('mobileNumber').value = p.mobileNumber || '';
             document.getElementById('dob').value = p.dob || '';
             document.getElementById('gender').value = p.gender || 'Male';
+            document.getElementById('nationality').value = p.nationality || 'Jordan';
             document.getElementById('firstTestDate').value = p.firstTestDate || '';
             document.getElementById('classification').value = p.classification || 'Adult';
             document.getElementById('subscriptionType').value = p.subscriptionType || 'Basic';
             document.getElementById('loyaltyJoiningDate').value = p.loyaltyJoiningDate || '';
             document.getElementById('premiumExpiryDate').value = p.premiumExpiryDate || '';
             document.getElementById('email').value = p.email || '';
-            document.getElementById('nationality').value = p.nationality || '';
             document.getElementById('referredBy').value = p.referredBy || '';
+            togglePremiumExpiryRequirement();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -626,6 +701,8 @@
 
         window.resetPatientForm = function() {
             document.getElementById('patientFirebaseKey').value = '';
+            populateCountries();
+            togglePremiumExpiryRequirement();
         }
 
         // --- MODULE 2 LOGIC: POINTS EARNED ---
@@ -645,8 +722,7 @@
                 description: document.getElementById('earnDescription').value,
                 amountEarned: Number(document.getElementById('amountEarned').value),
                 expiryDate: document.getElementById('earnExpiryDate').value,
-                msgSent: document.getElementById('msgSent').value,
-                redeemed: document.getElementById('earnRedeemed').value
+                msgSent: document.getElementById('msgSent').value
             };
             push(ref(db, 'transactionsEarned'), txnData);
             this.reset();
@@ -664,9 +740,8 @@
                             <td>${t.date || ''}</td>
                             <td>${t.description || ''}</td>
                             <td>${t.amountEarned || 0}</td>
-                            <td>-</td>
                             <td>${t.expiryDate || ''}</td>
-                            <td>${t.redeemed || ''}</td>
+                            <td>${t.msgSent || 'No'}</td>
                         </tr>
                     `;
                 });
@@ -736,8 +811,7 @@
                 transactionDescription: document.getElementById('redDescription').value,
                 date: document.getElementById('redDate').value,
                 amount: targetAmount,
-                redeemedBy: document.getElementById('redeemedBy').value,
-                redeemedFlag: document.getElementById('redeemedFlag').value
+                redeemedBy: document.getElementById('redeemedBy').value
             };
             push(ref(db, 'transactionsRedeemed'), redeemData);
             this.reset();
@@ -757,7 +831,6 @@
                             <td>${r.date || ''}</td>
                             <td>${r.amount || 0}</td>
                             <td>${r.redeemedBy || ''}</td>
-                            <td>${r.redeemedFlag || ''}</td>
                         </tr>
                     `;
                 });
@@ -838,7 +911,6 @@
                             const profileNo = row['Profile #'] || row['profileNumber'];
                             if(profileNo) {
                                 const profileStr = String(profileNo).trim();
-                                // Skip duplicates during bulk import
                                 const exists = Object.values(patientsCache).some(p => p.profileNumber && p.profileNumber.trim() === profileStr);
                                 if (!exists) {
                                     const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
@@ -851,6 +923,7 @@
                                         mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || ''),
                                         dob: formatExcelDate(rawDob),
                                         gender: row['Gender'] || row['gender'] || 'Male',
+                                        nationality: row['Nationality'] || row['nationality'] || 'Jordan',
                                         firstTestDate: formatExcelDate(rawFirstTest),
                                         classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
                                         subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
@@ -889,6 +962,7 @@
                                         mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || ''),
                                         dob: formatExcelDate(rawDob),
                                         gender: row['Gender'] || row['gender'] || 'Male',
+                                        nationality: row['Nationality'] || row['nationality'] || 'Jordan',
                                         firstTestDate: formatExcelDate(rawFirstTest),
                                         classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
                                         subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
