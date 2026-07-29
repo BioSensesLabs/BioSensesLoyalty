@@ -1095,33 +1095,41 @@
             rowsArray.forEach(row => tbody.appendChild(row));
         }
 
-        // --- DATE NORMALIZER FOR UPLOADS (FIXES TIMEZONE DAY-SHIFT) ---
+        // --- FIXED DATE NORMALIZER (PREVENTS TIMEZONE DAY-SHIFT) ---
         function formatExcelDate(val) {
             if (!val) return '';
-            // If it's an Excel serial number
+            
+            // 1. If it's an Excel numeric serial number
             if (!isNaN(val) && typeof val === 'number') {
-                const excelEpoch = new Date(1899, 11, 30);
+                const excelEpoch = new Date(Date.UTC(1899, 11, 30));
                 const jsDate = new Date(excelEpoch.getTime() + val * 86400000);
-                // Extract UTC components to prevent local timezone shift
                 const year = jsDate.getUTCFullYear();
                 const month = String(jsDate.getUTCMonth() + 1).padStart(2, '0');
                 const day = String(jsDate.getUTCDate()).padStart(2, '0');
                 return `${year}-${month}-${day}`;
             }
-            // If it's a date string (e.g., 'YYYY-MM-DD' or similar)
+
+            // 2. If it's a string (e.g., 'YYYY-MM-DD' or parsed text)
             const strVal = String(val).trim();
-            const dateObj = new Date(strVal);
-            if (!isNaN(dateObj)) {
-                // Use UTC methods if formatted as ISO date string or fallback to local date components split
-                const parts = strVal.split(/[-/]/);
-                if (parts.length === 3 && parts[0].length === 4) {
-                    return strVal.substring(0, 10); // already YYYY-MM-DD
-                }
-                const year = dateObj.getFullYear();
-                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-                const day = String(dateObj.getDate()).padStart(2, '0');
+            
+            // If it's already in YYYY-MM-DD format, return it directly to avoid any date shifting
+            const isoParts = strVal.split(/[-/]/);
+            if (isoParts.length === 3 && isoParts[0].length === 4) {
+                const year = isoParts[0];
+                const month = String(isoParts[1]).padStart(2, '0');
+                const day = String(isoParts[2]).padStart(2, '0');
                 return `${year}-${month}-${day}`;
             }
+
+            // Fallback for other string date formats parsed via UTC
+            const dateObj = new Date(strVal);
+            if (!isNaN(dateObj)) {
+                const year = dateObj.getUTCFullYear();
+                const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(dateObj.getUTCDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
             return strVal;
         }
 
