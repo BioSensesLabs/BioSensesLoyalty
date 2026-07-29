@@ -3,155 +3,1622 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BioSenses Loyalty System | B2B & B2C Portal</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Medical Loyalty Portal</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- PapaParse for CSV handling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <!-- SheetJS (xlsx) for Excel file handling and multi-sheet export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        .table th { cursor: pointer; user-select: none; background-color: #f8f9fa; }
+        .table th:hover { background-color: #e9ecef; }
+        .table th i { font-size: 0.8rem; margin-left: 4px; color: #6c757d; }
+        .action-icon { cursor: pointer; font-size: 1.1rem; transition: transform 0.1s; }
+        .action-icon:hover { transform: scale(1.2); }
+        
+        /* Friendlier Card & Form styling */
+        .patient-card {
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fdfefe 0%, #f4f6f9 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        .form-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 6px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        .app-view { display: none; }
+        .app-view.active { display: block; }
+        .hub-card {
+            border: none;
+            border-radius: 16px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: #ffffff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .hub-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
-<body>
+<body class="bg-light">
 
-    <!-- Application Container -->
-    <div id="app-container" class="app-container">
-        
-        <!-- Header Navigation -->
-        <header class="loyalty-header">
-            <div class="brand-section">
-                <h1>BioSenses Loyalty & Partnership Portal</h1>
-                <p>Manage B2C Patients and B2B Partner Data</p>
-            </div>
-            <div class="nav-controls">
-                <button id="portal-switch-btn" class="btn btn-outline btn-sm">Switch to B2B Portal</button>
-            </div>
-        </header>
-
-        <!-- Main Content Area -->
-        <main class="loyalty-main">
-            
-            <!-- Tabs Navigation -->
-            <div class="tabs-nav">
-                <button class="tab-btn active" data-target="earned-tab">Earned Points</button>
-                <button class="tab-btn" data-target="redeemed-tab">Redeemed Points</button>
-                <button class="tab-btn" data-target="profiles-tab">Patient Profiles</button>
-            </div>
-
-            <!-- Tab 1: Earned Points Form & Table -->
-            <div id="earned-tab" class="tab-content active">
-                <div class="section-card">
-                    <h3>Record Earned Points</h3>
-                    <form id="earned-points-form">
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <label for="date">Transaction Date</label>
-                                <input type="date" id="date" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="expiry-date">Points Expiry Date (Date + 1 Year)</label>
-                                <input type="date" id="expiry-date" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="points-value">Points Earned</label>
-                                <input type="number" id="points-value" placeholder="Enter points" required>
-                            </div>
+    <!-- VIEW 1: LOGIN -->
+    <div id="loginView" class="app-view container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-5">
+                <div class="card shadow-sm p-4 border-0 rounded-4">
+                    <div class="text-center mb-4">
+                        <div class="bg-primary text-white rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                            <i class="bi bi-shield-lock-fill fs-3"></i>
                         </div>
-                        <button type="submit" class="btn btn-primary">Save Earned Points</button>
+                        <h3 class="fw-bold text-dark">Portal Login</h3>
+                        <p class="text-muted small">Enter your credentials to access the loyalty system</p>
+                    </div>
+
+                    <form id="loginForm" onsubmit="handleLogin(event)">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">User Name</label>
+                            <input type="text" class="form-control" id="loginUsername" required placeholder="Enter username">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Password</label>
+                            <input type="password" class="form-control" id="loginPassword" required placeholder="Enter password">
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Change password</button>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold shadow-sm">Login</button>
                     </form>
                 </div>
-
-                <div class="section-card">
-                    <h3>Earned Points Ledger</h3>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Profile ID</th>
-                                <th>Patient Name</th>
-                                <th>Points</th>
-                                <th>Transaction Date</th>
-                                <th>Expiry Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="earned-table-body">
-                            <!-- Dynamic Rows with Edit & Delete Capability -->
-                            <tr>
-                                <td>P-1001</td>
-                                <td>Jane Doe</td>
-                                <td>150</td>
-                                <td>2026-07-29</td>
-                                <td>2027-07-29</td>
-                                <td>
-                                    <button class="btn btn-outline btn-sm" onclick="editTableRecord(this, 'Earned Points')">Edit</button>
-                                    <button class="btn btn-outline btn-sm delete-btn" onclick="deleteTableRecord(this, 'Earned Points')">Delete</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
             </div>
-
-            <!-- Tab 2: Redeemed Points Form & Table -->
-            <div id="redeemed-tab" class="tab-content" style="display: none;">
-                <div class="section-card">
-                    <h3>Record Redeemed Points</h3>
-                    <form id="redeemed-points-form">
-                        <div class="form-grid">
-                            <div class="input-group">
-                                <label for="redemption-date">Redemption Date</label>
-                                <input type="date" id="redemption-date" required>
-                            </div>
-                            <div class="input-group">
-                                <label for="redeemed-points-value">Points Redeemed</label>
-                                <input type="number" id="redeemed-points-value" placeholder="Enter points to deduct" required>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save Redemption</button>
-                    </form>
-                </div>
-
-                <div class="section-card">
-                    <h3>Redemption Ledger</h3>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Profile ID</th>
-                                <th>Patient Name</th>
-                                <th>Points Redeemed</th>
-                                <th>Redemption Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="redeemed-table-body">
-                            <!-- Dynamic Rows with Edit & Delete Capability -->
-                            <tr>
-                                <td>P-1002</td>
-                                <td>John Smith</td>
-                                <td>50</td>
-                                <td>2026-07-29</td>
-                                <td>
-                                    <button class="btn btn-outline btn-sm" onclick="editTableRecord(this, 'Redeemed Points')">Edit</button>
-                                    <button class="btn btn-outline btn-sm delete-btn" onclick="deleteTableRecord(this, 'Redeemed Points')">Delete</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tab 3: Profiles Tab -->
-            <div id="profiles-tab" class="tab-content" style="display: none;">
-                <div class="section-card">
-                    <h3>Registered Profiles</h3>
-                    <p>Manage member identities and profile numbers.</p>
-                </div>
-            </div>
-
-        </main>
-        
-        <footer class="loyalty-footer">
-            <p>&copy; 2026 BioSenses Inc. Loyalty Application System.</p>
-        </footer>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- CHANGE PASSWORD MODAL -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Change Portal Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="changePasswordForm" onsubmit="handleChangePassword(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="currentPass" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="newPass" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirmNewPass" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Update Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 2: B2C / B2B SELECTION HUB -->
+    <div id="hubView" class="app-view container">
+        <div class="row justify-content-center align-items-center min-vh-100">
+            <div class="col-md-8 text-center">
+                <div class="mb-5">
+                    <h2 class="fw-bold text-dark">Select Portal Environment</h2>
+                    <p class="text-muted">Choose between Consumer (B2C) or Business (B2B) operational channels</p>
+                </div>
+                <div class="row g-4 justify-content-center">
+                    <div class="col-md-5">
+                        <div class="card hub-card p-5 text-center" onclick="selectEnvironment('b2c')">
+                            <div class="bg-primary text-white rounded-circle p-4 d-inline-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 80px; height: 80px;">
+                                <i class="bi bi-people-fill fs-2"></i>
+                            </div>
+                            <h4 class="fw-bold text-dark mb-2">B2C Portal</h4>
+                            <p class="text-muted small mb-0">Manage consumer patient profiles, rewards, and personal loyalty logs.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="card hub-card p-5 text-center" onclick="selectEnvironment('b2b')">
+                            <div class="bg-success text-white rounded-circle p-4 d-inline-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 80px; height: 80px;">
+                                <i class="bi bi-building-fill fs-2"></i>
+                            </div>
+                            <h4 class="fw-bold text-dark mb-2">B2B Portal</h4>
+                            <p class="text-muted small mb-0">Manage corporate partners, business clients, and separate enterprise ledgers.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-5">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="logoutToHub(true)"><i class="bi bi-box-arrow-left me-1"></i> Log out</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW 3: MAIN APPLICATION CONTAINER (SHARED STRUCTURE FOR B2C & B2B) -->
+    <div id="appMainView" class="app-view">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm" id="portalNavbar">
+            <div class="container-fluid">
+                <a class="navbar-brand d-flex align-items-center gap-2" href="#" id="portalBrandTitle">
+                    <i class="bi bi-hospital"></i> <span id="brandNameText">BioSenses Loyalty Portal</span>
+                </a>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-light text-dark px-3 py-2 fw-bold" id="envBadgeDisplay">B2C</span>
+                    <button class="btn btn-outline-light btn-sm" onclick="backToHub()"><i class="bi bi-grid-fill me-1"></i> Switch Environment</button>
+                    <button class="btn btn-danger btn-sm" onclick="logoutToHub(true)"><i class="bi bi-box-arrow-right me-1"></i> Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container my-4">
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs mb-4" id="portalTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button"><span id="tabProfilesTitle">Patients Profile</span></button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="earn-tab" data-bs-toggle="tab" data-bs-target="#earn" type="button">Points Earned</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="redeem-tab" data-bs-toggle="tab" data-bs-target="#redeem" type="button">Redeemed Points</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="birthdays-tab" data-bs-toggle="tab" data-bs-target="#birthdays" type="button"><span id="tabAnniversaryTitle">Upcoming Birthdays</span></button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="portalContent">
+                
+                <!-- MODULE 1: PATIENTS PROFILE / BUSINESS PROFILE -->
+                <div class="tab-pane fade show active" id="patients" role="tabpanel">
+                    <div class="card patient-card p-4 mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary text-white rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                <i class="bi bi-person-plus-fill fs-5" id="formHeaderIcon"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-0 text-dark fw-bold" id="formMainTitle">Manage Patients Profile</h4>
+                                <small class="text-muted" id="formSubTitle">Register and maintain patient demographic and loyalty details securely.</small>
+                            </div>
+                        </div>
+
+                        <form id="patientForm" class="row g-3">
+                            <input type="hidden" id="patientFirebaseKey">
+                            
+                            <div class="col-12"><div class="form-section-title" id="formSection1Title">1. Identification & Personal Info</div></div>
+                            
+                            <!-- B2C Specific Fields Wrapper -->
+                            <div id="b2cFieldsWrapper" class="row g-3 m-0 p-0">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Profile Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control b2c-req" id="profileNumber" placeholder="e.g., P-1001">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Name (EN) <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control b2c-req" id="nameEn" placeholder="Full name in English">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Name (AR)</label>
+                                    <input type="text" class="form-control" id="nameAr" placeholder="الاسم بالعربي">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control b2c-req" id="mobileNumber" placeholder="Mobile number">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control b2c-req" id="dob">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Gender</label>
+                                    <select class="form-select" id="gender">
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Nationality</label>
+                                    <select class="form-select" id="nationality">
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">E-mail Address</label>
+                                    <input type="email" class="form-control" id="email" placeholder="patient@example.com">
+                                </div>
+
+                                <div class="col-12"><div class="form-section-title">2. Membership & Clinical Metrics</div></div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Classification</label>
+                                    <select class="form-select" id="classification">
+                                        <option value="Adult">Adult</option>
+                                        <option value="Child">Child</option>
+                                        <option value="Animal">Animal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Subscription Type</label>
+                                    <select class="form-select" id="subscriptionType" onchange="togglePremiumExpiryRequirement()">
+                                        <option value="Basic">Basic</option>
+                                        <option value="Premium">Premium</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" id="premiumExpiryLabel">Premium Expiry Date</label>
+                                    <input type="date" class="form-control" id="premiumExpiryDate">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">First Test Date</label>
+                                    <input type="date" class="form-control" id="firstTestDate">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Loyalty Joining Date</label>
+                                    <input type="date" class="form-control" id="loyaltyJoiningDate">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label">Referral (No / Name / Mobile)</label>
+                                    <input type="text" class="form-control" id="referredBy" placeholder="Source or referrer details">
+                                </div>
+                            </div>
+
+                            <!-- B2B Specific Fields Wrapper -->
+                            <div id="b2bFieldsWrapper" class="row g-3 m-0 p-0" style="display: none;">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Profile Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control b2b-req" id="b2b_profileNumber" placeholder="e.g., B-1001">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Business Entity Name EN <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control b2b-req" id="b2b_nameEn" placeholder="Business name in English">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Business Entity Name AR</label>
+                                    <input type="text" class="form-control" id="b2b_nameAr" placeholder="اسم المنشأة بالعربي">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Subscription Type</label>
+                                    <select class="form-select" id="b2b_subscriptionType" onchange="toggleB2BPremierExpiry()">
+                                        <option value="Basic">Basic</option>
+                                        <option value="Premium">Premium</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Loyalty Joining Date</label>
+                                    <input type="date" class="form-control" id="b2b_loyaltyJoiningDate">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" id="b2b_expiryLabel">Premium Subscription Expiry Date</label>
+                                    <input type="date" class="form-control" id="b2b_premiumExpiryDate">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control b2b-req" id="b2b_mobileNumber" placeholder="Business mobile number">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">E-mail Address</label>
+                                    <input type="email" class="form-control" id="b2b_email" placeholder="business@example.com">
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 d-flex align-items-end gap-2 mt-4 ms-auto">
+                                <button type="submit" class="btn btn-success flex-grow-1 py-2 fw-semibold shadow-sm"><i class="bi bi-check-circle me-1"></i> <span id="saveButtonText">Save Patient</span></button>
+                                <button type="reset" class="btn btn-outline-secondary py-2 px-3" onclick="resetPatientForm()"><i class="bi bi-x-circle"></i></button>
+                            </div>
+                        </form>
+                        
+                        <hr class="my-4 text-muted">
+                        
+                        <div class="row align-items-end">
+                            <div class="col-md-3 mb-2">
+                                <label class="form-label fw-bold text-secondary small">Bulk Upload (CSV / Excel)</label>
+                                <input type="file" id="fileInput" class="form-control form-control-sm" accept=".csv, .xlsx, .xls">
+                            </div>
+                            <div class="col-md-9 mb-2 d-flex flex-wrap gap-2">
+                                <button class="btn btn-outline-primary btn-sm" onclick="uploadFile()"><i class="bi bi-upload me-1"></i> Upload File</button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="downloadCSV()"><i class="bi bi-file-earmark-spreadsheet me-1"></i> Download CSV</button>
+                                <button class="btn btn-primary btn-sm" onclick="downloadAllDataExcel()"><i class="bi bi-file-earmark-excel me-1"></i> Download All Data (Excel)</button>
+                                <button class="btn btn-outline-danger btn-sm ms-auto" onclick="clearDatabase()"><i class="bi bi-trash me-1"></i> Clear Database</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Patients Table -->
+                    <div class="card shadow-sm p-4 border-0 rounded-3">
+                        <div class="row mb-3 align-items-center">
+                            <div class="col-md-6"><h5 class="fw-bold mb-0 text-secondary" id="tableHeaderTitle">Registered Patients</h5></div>
+                            <div class="col-md-6">
+                                <input type="text" id="searchPatients" class="form-control form-control-sm" placeholder="Search profiles..." onkeyup="filterPatientsTable()">
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover align-middle small" id="patientsTable">
+                                <thead>
+                                    <tr>
+                                        <th onclick="sortTable('patientsTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 1)"><span id="tblColNameEn">Name (EN)</span> <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 2)"><span id="tblColNameAr">Name (AR)</span> <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 3)"><span id="tblColMeta">Age</span> <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 4)"><span id="tblColClass">Class</span> <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 5)"><span id="tblColSub">Sub. Type</span> <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 6)">Earned <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 7)">Redeemed <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 8)">Balance <i class="bi bi-arrow-down-up"></i></th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODULE 2: POINTS EARNED -->
+                <div class="tab-pane fade" id="earn" role="tabpanel">
+                    <div class="card shadow-sm p-4 mb-4 border-0 rounded-3">
+                        <h4 class="mb-3 text-secondary fw-bold">Add Points Transaction</h4>
+                        <form id="earnForm" class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Profile Number</label>
+                                <input type="text" class="form-control" id="earnProfileNumber" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Reason</label>
+                                <select class="form-select" id="earnReason">
+                                    <!-- Populated dynamically based on environment -->
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Date</label>
+                                <input type="date" class="form-control" id="earnDate" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Amount Earned</label>
+                                <input type="number" class="form-control" id="amountEarned" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Description</label>
+                                <input type="text" class="form-control" id="earnDescription">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Expiry Date</label>
+                                <input type="date" class="form-control" id="earnExpiryDate">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Msg Sent</label>
+                                <select class="form-select" id="msgSent"><option>Yes</option><option>No</option></select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">Add Earn Transaction</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- View Transactions -->
+                    <div class="card shadow-sm p-4 border-0 rounded-3">
+                        <div class="row mb-3 align-items-center">
+                            <div class="col-md-4"><h5 class="fw-bold mb-0 text-secondary">Transactions Ledger</h5></div>
+                            <div class="col-md-4"><input type="text" id="searchTxn" class="form-control form-control-sm" placeholder="Search profile/desc..." onkeyup="filterTransactions()"></div>
+                            <div class="col-md-4">
+                                <select id="filterReason" class="form-select form-select-sm" onchange="filterTransactions()">
+                                    <option value="">Filter by Reason...</option>
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped align-middle small" id="earnTable">
+                                <thead>
+                                    <tr>
+                                        <th onclick="sortTable('earnTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('earnTable', 1)">Reason <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('earnTable', 2)">Date <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('earnTable', 3)">Description <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('earnTable', 4)">Earned <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('earnTable', 5)">Expiry <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('earnTable', 6)">Msg Sent <i class="bi bi-arrow-down-up"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODULE 3: REDEEMED POINTS -->
+                <div class="tab-pane fade" id="redeem" role="tabpanel">
+                    <div class="card shadow-sm p-4 mb-4 border-0 rounded-3">
+                        <h4 class="mb-3 text-secondary fw-bold">Redeem Points</h4>
+                        <form id="redeemForm" class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Profile Number</label>
+                                <input type="text" class="form-control" id="redProfileNumber" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Redemption Option</label>
+                                <select class="form-select" id="redOption" onchange="updateRedemptionOption()">
+                                    <!-- Populated dynamically based on environment -->
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Date</label>
+                                <input type="date" class="form-control" id="redDate" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Transaction Description</label>
+                                <input type="text" class="form-control" id="redDescription">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label" id="redAmountLabel">Points Amount </label>
+                                <input type="number" class="form-control" id="redAmount" min="1000" step="1000" oninput="validateRedemptionAmountInput(this)" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Redeemed By</label>
+                                <input type="text" class="form-control" id="redeemedBy" required>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <button type="submit" class="btn btn-danger w-100">Process Redemption</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Redeemed Table -->
+                    <div class="card shadow-sm p-4 border-0 rounded-3">
+                        <div class="row mb-3 align-items-center">
+                            <div class="col-md-6"><h5 class="fw-bold mb-0 text-secondary">Redemption Records</h5></div>
+                            <div class="col-md-6"><input type="text" id="searchRedeem" class="form-control form-control-sm" placeholder="Search redemptions..." onkeyup="filterRedeemTable()"></div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle small" id="redeemTable">
+                                <thead>
+                                    <tr>
+                                        <th onclick="sortTable('redeemTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('redeemTable', 1)">Option <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('redeemTable', 2)">Description <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('redeemTable', 3)">Date <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('redeemTable', 4)">Amount <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('redeemTable', 5)">Redeemed By <i class="bi bi-arrow-down-up"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODULE 4: UPCOMING BIRTHDAYS / UPCOMING ANNIVERSARY -->
+                <div class="tab-pane fade" id="birthdays" role="tabpanel">
+                    <div class="card shadow-sm p-4 border-0 rounded-3">
+                        <div class="row mb-3 align-items-center">
+                            <div class="col-md-6">
+                                <h4 class="mb-1 fw-bold text-secondary" id="anniversaryHeaderTitle">Upcoming Patient Birthdays</h4>
+                                <p class="text-muted mb-0 small" id="anniversarySubTitle">Profiles ordered sequentially by their upcoming birthday anniversary from today.</p>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" id="searchBirthdays" class="form-control form-control-sm" placeholder="Search upcoming anniversaries..." onkeyup="filterBirthdaysTable()">
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover align-middle small" id="birthdaysTable">
+                                <thead>
+                                    <tr id="anniversaryTableHeaderRow">
+                                        <th onclick="sortTable('birthdaysTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('birthdaysTable', 1)">Name (EN) <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('birthdaysTable', 2)">Mobile Number <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('birthdaysTable', 3)">Date of Birth <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('birthdaysTable', 4)">Upcoming Birthday <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('birthdaysTable', 5)">Days Until Birthday <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('birthdaysTable', 6)">Turning Age <i class="bi bi-arrow-down-up"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Firebase SDK Setup -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, remove, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBJu6lgAwU2VhaYX7zLazf8yG7qRMp90r8",
+            authDomain: "biosenses-loyalty.firebaseapp.com",
+            databaseURL: "https://biosenses-loyalty-default-rtdb.firebaseio.com",
+            projectId: "biosenses-loyalty",
+            storageBucket: "biosenses-loyalty.firebasestorage.app",
+            messagingSenderId: "295583625121",
+            appId: "1:295583625121:web:195b5610c365fa41ce65e0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let currentEnv = 'b2c'; // 'b2c' or 'b2b'
+        let patientsRef, earnRef, redeemRef;
+        let unsubscribePatients = null;
+        let unsubscribeEarn = null;
+        let unsubscribeRedeem = null;
+
+        // Global data caches
+        let patientsCache = {};
+        let earnCache = {};
+        let redeemCache = {};
+        let birthdaysCacheList = [];
+
+        // Complete country list with Jordan default
+        const countriesList = [
+            "Jordan", "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", 
+            "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", 
+            "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", 
+            "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", 
+            "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia", "Denmark", "Djibouti", "Dominica", 
+            "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", 
+            "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", 
+            "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", 
+            "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Kazakhstan", "Kenya", "Kiribati", "Korea, North", 
+            "Korea, South", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", 
+            "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", 
+            "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", 
+            "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", 
+            "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", 
+            "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", 
+            "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", 
+            "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", 
+            "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", 
+            "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", 
+            "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", 
+            "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+        ];
+
+        function populateCountries() {
+            const select = document.getElementById('nationality');
+            if(!select) return;
+            select.innerHTML = '';
+            countriesList.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.text = c;
+                if (c === "Jordan") opt.selected = true;
+                select.appendChild(opt);
+            });
+        }
+        document.addEventListener("DOMContentLoaded", () => { 
+            populateCountries(); 
+            togglePremiumExpiryRequirement(); 
+            toggleB2BPremierExpiry();
+            
+            // Check login state
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                showView('hubView');
+            } else {
+                showView('loginView');
+            }
+        });
+
+        window.handleLogin = function(e) {
+            e.preventDefault();
+            const u = document.getElementById('loginUsername').value.trim();
+            const p = document.getElementById('loginPassword').value.trim();
+            const storedPass = localStorage.getItem('portalPassword') || '828282';
+
+            if (u === 'BioSenses' && p === storedPass) {
+                localStorage.setItem('isLoggedIn', 'true');
+                showView('hubView');
+            } else {
+                alert('Invalid username or password.');
+            }
+        }
+
+        window.handleChangePassword = function(e) {
+            e.preventDefault();
+            const cur = document.getElementById('currentPass').value.trim();
+            const next = document.getElementById('newPass').value.trim();
+            const conf = document.getElementById('confirmNewPass').value.trim();
+            const storedPass = localStorage.getItem('portalPassword') || '828282';
+
+            if (cur !== storedPass) {
+                alert('Current password is incorrect.');
+                return;
+            }
+            if (next !== conf) {
+                alert('New passwords do not match.');
+                return;
+            }
+
+            localStorage.setItem('portalPassword', next);
+            alert('Password changed successfully!');
+            const modalEl = document.getElementById('changePasswordModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+            document.getElementById('changePasswordForm').reset();
+        }
+
+        window.logoutToHub = function(fullLogout = false) {
+            if (fullLogout) {
+                localStorage.removeItem('isLoggedIn');
+                showView('loginView');
+            } else {
+                showView('hubView');
+            }
+        }
+
+        window.showView = function(viewId) {
+            document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        window.selectEnvironment = function(env) {
+            currentEnv = env;
+            const badge = document.getElementById('envBadgeDisplay');
+            const brandText = document.getElementById('brandNameText');
+            const navbar = document.getElementById('portalNavbar');
+            
+            const b2cWrapper = document.getElementById('b2cFieldsWrapper');
+            const b2bWrapper = document.getElementById('b2bFieldsWrapper');
+
+            if (env === 'b2c') {
+                badge.innerText = 'B2C Portal';
+                badge.className = 'badge bg-light text-primary px-3 py-2 fw-bold';
+                brandText.innerText = 'BioSenses B2C Loyalty Portal';
+                navbar.className = 'navbar navbar-expand-lg navbar-dark bg-primary shadow-sm';
+                
+                b2cWrapper.style.display = 'flex';
+                b2bWrapper.style.display = 'none';
+
+                // Set required attributes appropriately
+                document.querySelectorAll('.b2c-req').forEach(el => el.required = true);
+                document.querySelectorAll('.b2b-req').forEach(el => el.required = false);
+
+                // Titles & Labels for B2C
+                document.getElementById('tabProfilesTitle').innerText = 'Patients Profile';
+                document.getElementById('tabAnniversaryTitle').innerText = 'Upcoming Birthdays';
+                document.getElementById('formHeaderIcon').className = 'bi bi-person-plus-fill fs-5';
+                document.getElementById('formMainTitle').innerText = 'Manage Patients Profile';
+                document.getElementById('formSubTitle').innerText = 'Register and maintain patient demographic and loyalty details securely.';
+                document.getElementById('formSection1Title').innerText = '1. Identification & Personal Info';
+                document.getElementById('saveButtonText').innerText = 'Save Patient';
+                document.getElementById('tableHeaderTitle').innerText = 'Registered Patients';
+
+                document.getElementById('tblColNameEn').innerText = 'Name (EN)';
+                document.getElementById('tblColNameAr').innerText = 'Name (AR)';
+                document.getElementById('tblColMeta').innerText = 'Age';
+                document.getElementById('tblColClass').innerText = 'Class';
+                document.getElementById('tblColSub').innerText = 'Sub. Type';
+
+                document.getElementById('anniversaryHeaderTitle').innerText = 'Upcoming Patient Birthdays';
+                document.getElementById('anniversarySubTitle').innerText = 'Profiles ordered sequentially by their upcoming birthday anniversary from today.';
+                document.getElementById('anniversaryTableHeaderRow').innerHTML = `
+                    <th onclick="sortTable('birthdaysTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 1)">Name (EN) <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 2)">Mobile Number <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 3)">Date of Birth <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 4)">Upcoming Birthday <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 5)">Days Until Birthday <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 6)">Turning Age <i class="bi bi-arrow-down-up"></i></th>
+                `;
+
+                patientsRef = ref(db, 'b2c/patients');
+                earnRef = ref(db, 'b2c/transactionsEarned');
+                redeemRef = ref(db, 'b2c/transactionsRedeemed');
+            } else {
+                badge.innerText = 'B2B Portal';
+                badge.className = 'badge bg-light text-success px-3 py-2 fw-bold';
+                brandText.innerText = 'BioSenses B2B Loyalty Portal';
+                navbar.className = 'navbar navbar-expand-lg navbar-dark bg-success shadow-sm';
+                
+                b2cWrapper.style.display = 'none';
+                b2bWrapper.style.display = 'flex';
+
+                // Set required attributes appropriately
+                document.querySelectorAll('.b2c-req').forEach(el => el.required = false);
+                document.querySelectorAll('.b2b-req').forEach(el => el.required = true);
+
+                // Titles & Labels for B2B
+                document.getElementById('tabProfilesTitle').innerText = 'Business Profile';
+                document.getElementById('tabAnniversaryTitle').innerText = 'Upcoming Anniversary';
+                document.getElementById('formHeaderIcon').className = 'bi bi-building-fill fs-5';
+                document.getElementById('formMainTitle').innerText = 'Manage Business Profile';
+                document.getElementById('formSubTitle').innerText = 'Register and maintain business partner demographic and loyalty details securely.';
+                document.getElementById('formSection1Title').innerText = '1. Business Identification & Details';
+                document.getElementById('saveButtonText').innerText = 'Save Business';
+                document.getElementById('tableHeaderTitle').innerText = 'Registered Businesses';
+
+                document.getElementById('tblColNameEn').innerText = 'Business Name (EN)';
+                document.getElementById('tblColNameAr').innerText = 'Business Name (AR)';
+                document.getElementById('tblColMeta').innerText = 'Mobile';
+                document.getElementById('tblColClass').innerText = 'Joining Date';
+                document.getElementById('tblColSub').innerText = 'Sub. Type';
+
+                document.getElementById('anniversaryHeaderTitle').innerText = 'Upcoming Business Anniversary';
+                document.getElementById('anniversarySubTitle').innerText = 'Business profiles ordered sequentially by their upcoming joining or subscription expiry anniversary from today.';
+                document.getElementById('anniversaryTableHeaderRow').innerHTML = `
+                    <th onclick="sortTable('birthdaysTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 1)">Business Entity Name (EN) <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 2)">Mobile Number <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 3)">Anniversary Type <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 4)">Original Date <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 5)">Upcoming Anniversary Date <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 6)">Days Until Anniversary <i class="bi bi-arrow-down-up"></i></th>
+                `;
+
+                patientsRef = ref(db, 'b2b/patients');
+                earnRef = ref(db, 'b2b/transactionsEarned');
+                redeemRef = ref(db, 'b2b/transactionsRedeemed');
+            }
+
+            // Setup Dropdowns for Reason and Redemption based on env
+            setupEnvironmentDropdowns();
+
+            // Clean up previous listeners if any
+            if (unsubscribePatients) unsubscribePatients();
+            if (unsubscribeEarn) unsubscribeEarn();
+            if (unsubscribeRedeem) unsubscribeRedeem();
+
+            // Bind real-time listeners for selected environment
+            unsubscribePatients = onValue(patientsRef, (snapshot) => {
+                patientsCache = snapshot.val() || {};
+                refreshAllData();
+            });
+
+            unsubscribeEarn = onValue(earnRef, (snapshot) => {
+                earnCache = snapshot.val() || {};
+                renderEarnTable(earnCache);
+                refreshPatientsTable();
+            });
+
+            unsubscribeRedeem = onValue(redeemRef, (snapshot) => {
+                redeemCache = snapshot.val() || {};
+                renderRedeemTable(redeemCache);
+                refreshPatientsTable();
+            });
+
+            showView('appMainView');
+        }
+
+        window.backToHub = function() {
+            showView('hubView');
+        }
+
+        window.togglePremiumExpiryRequirement = function() {
+            const subType = document.getElementById('subscriptionType').value;
+            const expiryInput = document.getElementById('premiumExpiryDate');
+            const label = document.getElementById('premiumExpiryLabel');
+            if (subType === 'Premium') {
+                expiryInput.required = true;
+                label.innerHTML = 'Premium Expiry Date <span class="text-danger">*</span>';
+            } else {
+                expiryInput.required = false;
+                label.innerHTML = 'Premium Expiry Date';
+                expiryInput.value = '';
+            }
+        }
+
+        window.toggleB2BPremierExpiry = function() {
+            const subType = document.getElementById('b2b_subscriptionType').value;
+            const expiryInput = document.getElementById('b2b_premiumExpiryDate');
+            const label = document.getElementById('b2b_expiryLabel');
+            if (subType === 'Premium') {
+                expiryInput.required = true;
+                label.innerHTML = 'Premium Subscription Expiry Date <span class="text-danger">*</span>';
+            } else {
+                expiryInput.required = false;
+                label.innerHTML = 'Premium Subscription Expiry Date';
+                expiryInput.value = '';
+            }
+        }
+
+        function setupEnvironmentDropdowns() {
+            const earnReasonSelect = document.getElementById('earnReason');
+            const filterReasonSelect = document.getElementById('filterReason');
+            const redOptionSelect = document.getElementById('redOption');
+
+            earnReasonSelect.innerHTML = '';
+            filterReasonSelect.innerHTML = '<option value="">Filter by Reason...</option>';
+            redOptionSelect.innerHTML = '';
+
+            if (currentEnv === 'b2c') {
+                const reasons = ['Spending', 'Referrals', 'Healthy Lifestyle', 'Occasions', 'Health Achievement', 'Customer Experience', 'Corporate', 'Community', 'Experience'];
+                reasons.forEach(r => {
+                    earnReasonSelect.innerHTML += `<option>${r}</option>`;
+                    filterReasonSelect.innerHTML += `<option>${r}</option>`;
+                });
+
+                const redOptions = [
+                    {val: '250 <> 5 JOD', amt: 250},
+                    {val: '500 <> 10 JOD', amt: 500},
+                    {val: '750 <> 15 JOD', amt: 750},
+                    {val: '1000 <> 20 JOD', amt: 1000},
+                    {val: '1500 <> Free Basic Checkup', amt: 1500},
+                    {val: '2000 <> 35 JOD', amt: 2000},
+                    {val: '2500 <> Free comprehensive Checkup', amt: 2500},
+                    {val: '5000 <> Premium Subscription', amt: 5000}
+                ];
+                redOptions.forEach(opt => {
+                    redOptionSelect.innerHTML += `<option value="${opt.val}" data-amt="${opt.amt}">${opt.val}</option>`;
+                });
+            } else {
+                // B2B specific options
+                const b2bReasons = ['Spending', 'Occasions'];
+                b2bReasons.forEach(r => {
+                    earnReasonSelect.innerHTML += `<option>${r}</option>`;
+                    filterReasonSelect.innerHTML += `<option>${r}</option>`;
+                });
+
+                const b2bRedOptions = [
+                    {val: 'Standard Redemption <> 15 JOD / 1000', amt: 1000},
+                    {val: 'Tiered Redemption <> 17 JOD / 1000', amt: 1000}
+                ];
+                b2bRedOptions.forEach(opt => {
+                    redOptionSelect.innerHTML += `<option value="${opt.val}" data-amt="${opt.amt}">${opt.val}</option>`;
+                });
+            }
+            updateRedemptionOption();
+        }
+
+        function isProfileValid(profileNo) {
+            if (!profileNo || !patientsCache) return false;
+            const target = profileNo.trim();
+            return Object.values(patientsCache).some(p => p.profileNumber && p.profileNumber.trim() === target);
+        }
+
+        function refreshAllData() {
+            refreshPatientsTable();
+            refreshBirthdaysTable();
+        }
+
+        window.refreshPatientsTable = function() {
+            const tbody = document.querySelector('#patientsTable tbody');
+            tbody.innerHTML = '';
+            
+            if(patientsCache) {
+                Object.keys(patientsCache).forEach(key => {
+                    const p = patientsCache[key];
+                    const profileNo = p.profileNumber ? p.profileNumber.trim() : '';
+                    
+                    let col2Val = '';
+                    let col3Val = '';
+                    let col4Val = '';
+                    let col5Val = '';
+
+                    if (currentEnv === 'b2c') {
+                        col2Val = p.nameAr || '';
+                        col3Val = p.dob ? (new Date().getFullYear() - new Date(p.dob).getFullYear()) + ' yrs' : 'N/A';
+                        col4Val = p.classification || '';
+                        col5Val = p.subscriptionType || 'Basic';
+                    } else {
+                        col2Val = p.nameAr || '';
+                        col3Val = p.mobileNumber || '';
+                        col4Val = p.loyaltyJoiningDate || 'N/A';
+                        col5Val = p.subscriptionType || 'Basic';
+                    }
+
+                    let totalEarned = 0;
+                    if(earnCache) {
+                        Object.values(earnCache).forEach(t => {
+                            if(t.profileNumber && t.profileNumber.trim() === profileNo) {
+                                totalEarned += Number(t.amountEarned) || 0;
+                            }
+                        });
+                    }
+
+                    let totalRedeemed = 0;
+                    if(redeemCache) {
+                        Object.values(redeemCache).forEach(r => {
+                            if(r.profileNumber && r.profileNumber.trim() === profileNo) {
+                                totalRedeemed += Number(r.amount) || 0;
+                            }
+                        });
+                    }
+
+                    const totalBalance = totalEarned - totalRedeemed;
+                    const balanceBadgeClass = totalBalance >= 0 ? 'bg-primary' : 'bg-dark';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${p.profileNumber || ''}</td>
+                            <td>${p.nameEn || ''}</td>
+                            <td>${col2Val}</td>
+                            <td>${col3Val}</td>
+                            <td>${col4Val}</td>
+                            <td>${col5Val}</td>
+                            <td><span class="badge bg-success">${totalEarned}</span></td>
+                            <td><span class="badge bg-danger">${totalRedeemed}</span></td>
+                            <td><span class="badge ${balanceBadgeClass}">${totalBalance}</span></td>
+                            <td class="text-center">
+                                <i class="bi bi-pencil-square text-primary action-icon me-3" title="Edit Profile" onclick="editPatient('${key}', ${JSON.stringify(p).replace(/"/g, '&quot;')})"></i>
+                                <i class="bi bi-trash3-fill text-danger action-icon" title="Delete Profile" onclick="deletePatient('${key}')"></i>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+            filterPatientsTable();
+        }
+
+        window.filterPatientsTable = function() {
+            const query = (document.getElementById('searchPatients').value || '').toLowerCase();
+            const rows = document.querySelectorAll('#patientsTable tbody tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        function refreshBirthdaysTable() {
+            const tbody = document.querySelector('#birthdaysTable tbody');
+            tbody.innerHTML = '';
+            birthdaysCacheList = [];
+
+            if (!patientsCache) return;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (currentEnv === 'b2c') {
+                Object.values(patientsCache).forEach(p => {
+                    if (!p.dob) return;
+                    const dobDate = new Date(p.dob + 'T00:00:00');
+                    if (isNaN(dobDate)) return;
+
+                    let bYear = today.getFullYear();
+                    let nextBday = new Date(bYear, dobDate.getMonth(), dobDate.getDate());
+                    nextBday.setHours(0, 0, 0, 0);
+
+                    if (nextBday < today) {
+                        bYear++;
+                        nextBday = new Date(bYear, dobDate.getMonth(), dobDate.getDate());
+                        nextBday.setHours(0, 0, 0, 0);
+                    }
+
+                    const diffTime = nextBday - today;
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                    const turningAge = bYear - dobDate.getFullYear();
+
+                    birthdaysCacheList.push({
+                        "Profile #": p.profileNumber || '',
+                        "Name (EN)": p.nameEn || '',
+                        "Mobile Number": p.mobileNumber || '',
+                        "Date of Birth": p.dob,
+                        "Upcoming Birthday": nextBday.toISOString().split('T')[0],
+                        "Days Until Birthday": diffDays,
+                        "Turning Age": turningAge
+                    });
+                });
+
+                birthdaysCacheList.sort((a, b) => a["Days Until Birthday"] - b["Days Until Birthday"]);
+
+                birthdaysCacheList.forEach(item => {
+                    const diffDays = item["Days Until Birthday"];
+                    const badgeClass = diffDays === 0 ? 'bg-success' : (diffDays <= 7 ? 'bg-warning text-dark' : 'bg-secondary');
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item["Profile #"]}</td>
+                            <td>${item["Name (EN)"]}</td>
+                            <td>${item["Mobile Number"]}</td>
+                            <td>${item["Date of Birth"]}</td>
+                            <td>${item["Upcoming Birthday"]}</td>
+                            <td><span class="badge ${badgeClass}">${diffDays === 0 ? 'Today! 🎉' : diffDays + ' days'}</span></td>
+                            <td>${item["Turning Age"]} yrs</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                // B2B Anniversary logic: check both Loyalty Joining Date and Premium Subscription Expiry Date
+                Object.values(patientsCache).forEach(p => {
+                    const datesToCheck = [];
+                    if (p.loyaltyJoiningDate) {
+                        datesToCheck.push({ type: 'Loyalty Joining Anniversary', dateStr: p.loyaltyJoiningDate });
+                    }
+                    if (p.subscriptionType === 'Premium' && p.premiumExpiryDate) {
+                        datesToCheck.push({ type: 'Premium Expiry Anniversary', dateStr: p.premiumExpiryDate });
+                    }
+
+                    datesToCheck.forEach(itemInfo => {
+                        const origDate = new Date(itemInfo.dateStr + 'T00:00:00');
+                        if (isNaN(origDate)) return;
+
+                        let bYear = today.getFullYear();
+                        let nextAnniv = new Date(bYear, origDate.getMonth(), origDate.getDate());
+                        nextAnniv.setHours(0, 0, 0, 0);
+
+                        if (nextAnniv < today) {
+                            bYear++;
+                            nextAnniv = new Date(bYear, origDate.getMonth(), origDate.getDate());
+                            nextAnniv.setHours(0, 0, 0, 0);
+                        }
+
+                        const diffTime = nextAnniv - today;
+                        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                        birthdaysCacheList.push({
+                            "Profile #": p.profileNumber || '',
+                            "Business Entity Name (EN)": p.nameEn || '',
+                            "Mobile Number": p.mobileNumber || '',
+                            "Anniversary Type": itemInfo.type,
+                            "Original Date": itemInfo.dateStr,
+                            "Upcoming Anniversary Date": nextAnniv.toISOString().split('T')[0],
+                            "Days Until Anniversary": diffDays
+                        });
+                    });
+                });
+
+                birthdaysCacheList.sort((a, b) => a["Days Until Anniversary"] - b["Days Until Anniversary"]);
+
+                birthdaysCacheList.forEach(item => {
+                    const diffDays = item["Days Until Anniversary"];
+                    const badgeClass = diffDays === 0 ? 'bg-success' : (diffDays <= 7 ? 'bg-warning text-dark' : 'bg-secondary');
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item["Profile #"]}</td>
+                            <td>${item["Business Entity Name (EN)"]}</td>
+                            <td>${item["Mobile Number"]}</td>
+                            <td><span class="badge bg-info text-dark">${item["Anniversary Type"]}</span></td>
+                            <td>${item["Original Date"]}</td>
+                            <td>${item["Upcoming Anniversary Date"]}</td>
+                            <td><span class="badge ${badgeClass}">${diffDays === 0 ? 'Today! 🎉' : diffDays + ' days'}</span></td>
+                        </tr>
+                    `;
+                });
+            }
+            filterBirthdaysTable();
+        }
+
+        window.filterBirthdaysTable = function() {
+            const query = (document.getElementById('searchBirthdays').value || '').toLowerCase();
+            const rows = document.querySelectorAll('#birthdaysTable tbody tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        // --- MODULE 1 LOGIC: PATIENTS / BUSINESS ---
+        window.calculateDerivedFields = function() {
+            const dobVal = document.getElementById('dob').value;
+            if(!dobVal) return;
+        }
+
+        document.getElementById('patientForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const key = document.getElementById('patientFirebaseKey').value;
+            
+            let inputProfileNo = '';
+            let patientData = {};
+
+            if (currentEnv === 'b2c') {
+                inputProfileNo = document.getElementById('profileNumber').value.trim();
+                patientData = {
+                    profileNumber: inputProfileNo,
+                    nameEn: document.getElementById('nameEn').value,
+                    nameAr: document.getElementById('nameAr').value,
+                    mobileNumber: document.getElementById('mobileNumber').value,
+                    dob: document.getElementById('dob').value,
+                    gender: document.getElementById('gender').value,
+                    firstTestDate: document.getElementById('firstTestDate').value,
+                    classification: document.getElementById('classification').value,
+                    subscriptionType: document.getElementById('subscriptionType').value,
+                    loyaltyJoiningDate: document.getElementById('loyaltyJoiningDate').value,
+                    premiumExpiryDate: document.getElementById('premiumExpiryDate').value,
+                    email: document.getElementById('email').value,
+                    nationality: document.getElementById('nationality').value,
+                    referredBy: document.getElementById('referredBy').value
+                };
+            } else {
+                inputProfileNo = document.getElementById('b2b_profileNumber').value.trim();
+                patientData = {
+                    profileNumber: inputProfileNo,
+                    nameEn: document.getElementById('b2b_nameEn').value,
+                    nameAr: document.getElementById('b2b_nameAr').value,
+                    mobileNumber: document.getElementById('b2b_mobileNumber').value,
+                    subscriptionType: document.getElementById('b2b_subscriptionType').value,
+                    loyaltyJoiningDate: document.getElementById('b2b_loyaltyJoiningDate').value,
+                    premiumExpiryDate: document.getElementById('b2b_premiumExpiryDate').value,
+                    email: document.getElementById('b2b_email').value
+                };
+            }
+
+            const isDuplicate = Object.entries(patientsCache).some(([existingKey, p]) => {
+                return p.profileNumber && p.profileNumber.trim() === inputProfileNo && existingKey !== key;
+            });
+
+            if (isDuplicate) {
+                alert(`Error: Profile Number "${inputProfileNo}" already exists in the system. Profile numbers must be unique.`);
+                return;
+            }
+
+            if(key) {
+                update(ref(db, `${currentEnv}/patients/` + key), patientData);
+            } else {
+                const newRef = push(patientsRef);
+                set(newRef, patientData);
+            }
+            this.reset();
+            document.getElementById('patientFirebaseKey').value = '';
+            populateCountries();
+            togglePremiumExpiryRequirement();
+            toggleB2BPremierExpiry();
+        });
+
+        window.editPatient = function(key, p) {
+            document.getElementById('patientFirebaseKey').value = key;
+            if (currentEnv === 'b2c') {
+                document.getElementById('profileNumber').value = p.profileNumber || '';
+                document.getElementById('nameEn').value = p.nameEn || '';
+                document.getElementById('nameAr').value = p.nameAr || '';
+                document.getElementById('mobileNumber').value = p.mobileNumber || '';
+                document.getElementById('dob').value = p.dob || '';
+                document.getElementById('gender').value = p.gender || 'Male';
+                document.getElementById('nationality').value = p.nationality || 'Jordan';
+                document.getElementById('firstTestDate').value = p.firstTestDate || '';
+                document.getElementById('classification').value = p.classification || 'Adult';
+                document.getElementById('subscriptionType').value = p.subscriptionType || 'Basic';
+                document.getElementById('loyaltyJoiningDate').value = p.loyaltyJoiningDate || '';
+                document.getElementById('premiumExpiryDate').value = p.premiumExpiryDate || '';
+                document.getElementById('email').value = p.email || '';
+                document.getElementById('referredBy').value = p.referredBy || '';
+                togglePremiumExpiryRequirement();
+            } else {
+                document.getElementById('b2b_profileNumber').value = p.profileNumber || '';
+                document.getElementById('b2b_nameEn').value = p.nameEn || '';
+                document.getElementById('b2b_nameAr').value = p.nameAr || '';
+                document.getElementById('b2b_mobileNumber').value = p.mobileNumber || '';
+                document.getElementById('b2b_subscriptionType').value = p.subscriptionType || 'Basic';
+                document.getElementById('b2b_loyaltyJoiningDate').value = p.loyaltyJoiningDate || '';
+                document.getElementById('b2b_premiumExpiryDate').value = p.premiumExpiryDate || '';
+                document.getElementById('b2b_email').value = p.email || '';
+                toggleB2BPremierExpiry();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.deletePatient = function(key) {
+            if(confirm('Are you sure you want to delete this profile?')) {
+                remove(ref(db, `${currentEnv}/patients/` + key));
+            }
+        }
+
+        window.resetPatientForm = function() {
+            document.getElementById('patientFirebaseKey').value = '';
+            populateCountries();
+            togglePremiumExpiryRequirement();
+            toggleB2BPremierExpiry();
+        }
+
+        // --- MODULE 2 LOGIC: POINTS EARNED ---
+        document.getElementById('earnForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const profileNo = document.getElementById('earnProfileNumber').value;
+
+            if (!isProfileValid(profileNo)) {
+                alert(`Validation Error: Profile number "${profileNo}" does not exist in the system. Please register the profile first.`);
+                return;
+            }
+
+            const txnData = {
+                profileNumber: profileNo.trim(),
+                reason: document.getElementById('earnReason').value,
+                date: document.getElementById('earnDate').value,
+                description: document.getElementById('earnDescription').value,
+                amountEarned: Number(document.getElementById('amountEarned').value),
+                expiryDate: document.getElementById('earnExpiryDate').value,
+                msgSent: document.getElementById('msgSent').value
+            };
+            push(earnRef, txnData);
+            this.reset();
+        });
+
+        window.renderEarnTable = function(data) {
+            const tbody = document.querySelector('#earnTable tbody');
+            tbody.innerHTML = '';
+            if(data) {
+                Object.values(data).forEach(t => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${t.profileNumber || ''}</td>
+                            <td>${t.reason || ''}</td>
+                            <td>${t.date || ''}</td>
+                            <td>${t.description || ''}</td>
+                            <td>${t.amountEarned || 0}</td>
+                            <td>${t.expiryDate || ''}</td>
+                            <td>${t.msgSent || 'No'}</td>
+                        </tr>
+                    `;
+                });
+            }
+            filterTransactions();
+        }
+
+        window.filterTransactions = function() {
+            const query = (document.getElementById('searchTxn').value || '').toLowerCase();
+            const reasonFilter = document.getElementById('filterReason').value;
+            const rows = document.querySelectorAll('#earnTable tbody tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                const reasonCell = row.cells[1] ? row.cells[1].innerText : '';
+                const matchesSearch = text.includes(query);
+                const matchesReason = !reasonFilter || reasonCell === reasonFilter;
+                row.style.display = (matchesSearch && matchesReason) ? '' : 'none';
+            });
+        }
+
+        // --- MODULE 3 LOGIC: REDEEMED POINTS ---
+        window.updateRedemptionOption = function() {
+            const select = document.getElementById('redOption');
+            if(!select || select.selectedIndex < 0) return;
+            const amountInput = document.getElementById('redAmount');
+
+            if (currentEnv === 'b2c') {
+                const amt = select.options[select.selectedIndex].getAttribute('data-amt');
+                amountInput.value = amt;
+                amountInput.readOnly = true;
+                amountInput.removeAttribute('min');
+                amountInput.removeAttribute('step');
+            } else {
+                // B2B: Allow entering any valid 1000 multiplication with minimum 1000
+                amountInput.readOnly = false;
+                amountInput.min = 1000;
+                amountInput.step = 1000;
+                amountInput.removeAttribute('max');
+                if (Number(amountInput.value) < 1000) {
+                    amountInput.value = 1000;
+                }
+            }
+        }
+
+        window.validateRedemptionAmountInput = function(input) {
+            if (currentEnv === 'b2b') {
+                // Keep input open without enforced strict clamping upper bounds, validation happens on submit
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => { updateRedemptionOption(); });
+
+        document.getElementById('redeemForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const profileNo = document.getElementById('redProfileNumber').value.trim();
+            const targetAmount = Number(document.getElementById('redAmount').value);
+
+            if (currentEnv === 'b2b') {
+                if (targetAmount < 1000 || targetAmount % 1000 !== 0) {
+                    alert(`Validation Error: Redeemed amount must be at least 1000 and a valid multiple of 1000.`);
+                    return;
+                }
+            }
+
+            if (!isProfileValid(profileNo)) {
+                alert(`Validation Error: Profile number "${profileNo}" does not exist in the system. Please register the profile first.`);
+                return;
+            }
+
+            let totalEarned = 0;
+            if (earnCache) {
+                Object.values(earnCache).forEach(t => {
+                    if (t.profileNumber && t.profileNumber.trim() === profileNo) {
+                        totalEarned += Number(t.amountEarned) || 0;
+                    }
+                });
+            }
+
+            let totalRedeemed = 0;
+            if (redeemCache) {
+                Object.values(redeemCache).forEach(r => {
+                    if (r.profileNumber && r.profileNumber.trim() === profileNo) {
+                        totalRedeemed += Number(r.amount) || 0;
+                    }
+                });
+            }
+
+            const currentBalance = totalEarned - totalRedeemed;
+
+            if (currentBalance < targetAmount) {
+                alert(`Insufficient points balance! Current balance is ${currentBalance} points, but ${targetAmount} points are required.`);
+                return;
+            }
+
+            const redeemData = {
+                profileNumber: profileNo,
+                redemptionOption: document.getElementById('redOption').value,
+                transactionDescription: document.getElementById('redDescription').value,
+                date: document.getElementById('redDate').value,
+                amount: targetAmount,
+                redeemedBy: document.getElementById('redeemedBy').value
+            };
+            push(redeemRef, redeemData);
+            this.reset();
+            updateRedemptionOption();
+        });
+
+        window.renderRedeemTable = function(data) {
+            const tbody = document.querySelector('#redeemTable tbody');
+            tbody.innerHTML = '';
+            if(data) {
+                Object.values(data).forEach(r => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${r.profileNumber || ''}</td>
+                            <td>${r.redemptionOption || ''}</td>
+                            <td>${r.transactionDescription || ''}</td>
+                            <td>${r.date || ''}</td>
+                            <td>${r.amount || 0}</td>
+                            <td>${r.redeemedBy || ''}</td>
+                        </tr>
+                    `;
+                });
+            }
+            filterRedeemTable();
+        }
+
+        window.filterRedeemTable = function() {
+            const query = (document.getElementById('searchRedeem').value || '').toLowerCase();
+            const rows = document.querySelectorAll('#redeemTable tbody tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        // --- UNIVERSAL TABLE SORTING ---
+        let sortDirections = {};
+        window.sortTable = function(tableId, colIndex) {
+            const table = document.getElementById(tableId);
+            const tbody = table.querySelector('tbody');
+            const rowsArray = Array.from(tbody.querySelectorAll('tr'));
+            
+            sortDirections[tableId] = !sortDirections[tableId];
+            const asc = sortDirections[tableId];
+
+            rowsArray.sort((a, b) => {
+                const cellA = a.cells[colIndex].innerText.trim();
+                const cellB = b.cells[colIndex].innerText.trim();
+
+                const numA = parseFloat(cellA.replace(/[^0-9.-]+/g,""));
+                const numB = parseFloat(cellB.replace(/[^0-9.-]+/g,""));
+
+                if (!isNaN(numA) && !isNaN(numB) && cellA !== '' && cellB !== '') {
+                    return asc ? numA - numB : numB - numA;
+                }
+                return asc ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+            });
+
+            rowsArray.forEach(row => tbody.appendChild(row));
+        }
+
+        // --- FIXED DATE NORMALIZER (PREVENTS TIMEZONE DAY-SHIFT) ---
+        function formatExcelDate(val) {
+            if (!val) return '';
+            
+            if (!isNaN(val) && typeof val === 'number') {
+                const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+                const jsDate = new Date(excelEpoch.getTime() + val * 86400000);
+                const year = jsDate.getUTCFullYear();
+                const month = String(jsDate.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(jsDate.getUTCDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            const strVal = String(val).trim();
+            const isoParts = strVal.split(/[-/]/);
+            if (isoParts.length === 3 && isoParts[0].length === 4) {
+                const year = isoParts[0];
+                const month = String(isoParts[1]).padStart(2, '0');
+                const day = String(isoParts[2]).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            const dateObj = new Date(strVal);
+            if (!isNaN(dateObj)) {
+                const year = dateObj.getUTCFullYear();
+                const month = String(dateObj.getUTCFullYear() + 1 ? dateObj.getUTCMonth() + 1 : 1).padStart(2, '0');
+                const day = String(dateObj.getUTCDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            return strVal;
+        }
+
+        // --- BULK FILE & EXPORT UTILITIES ---
+        window.uploadFile = function() {
+            const fileInput = document.getElementById('fileInput');
+            if(fileInput.files.length === 0) return alert("Please select a CSV or Excel file first.");
+            
+            const file = fileInput.files[0];
+            const fileName = file.name.toLowerCase();
+
+            if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        const jsonRows = XLSX.utils.sheet_to_json(worksheet);
+
+                        let count = 0;
+                        jsonRows.forEach(row => {
+                            const profileNo = row['Profile #'] || row['profileNumber'];
+                            if(profileNo) {
+                                const profileStr = String(profileNo).trim();
+                                const exists = Object.values(patientsCache).some(p => p.profileNumber && p.profileNumber.trim() === profileStr);
+                                if (!exists) {
+                                    let patientRecord = {};
+                                    if (currentEnv === 'b2c') {
+                                        const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
+                                        const rawFirstTest = row['First Order Date'] || row['First Test Date'] || row['firstTestDate'];
+                                        patientRecord = {
+                                            profileNumber: profileStr,
+                                            nameEn: row['Name (EN)'] || row['nameEn'] || '',
+                                            nameAr: row['Name (AR)'] || row['nameAr'] || '',
+                                            mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || '').trim(),
+                                            dob: formatExcelDate(rawDob),
+                                            gender: row['Gender'] || row['gender'] || 'Male',
+                                            nationality: row['Nationality'] || row['nationality'] || 'Jordan',
+                                            firstTestDate: formatExcelDate(rawFirstTest),
+                                            classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
+                                            subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
+                                        };
+                                    } else {
+                                        const rawJoining = row['Loyalty Joining Date'] || row['loyaltyJoiningDate'];
+                                        const rawExpiry = row['Premium Subscription Expiry Date'] || row['premiumExpiryDate'];
+                                        patientRecord = {
+                                            profileNumber: profileStr,
+                                            nameEn: row['Business Entity Name EN'] || row['nameEn'] || '',
+                                            nameAr: row['Business Entity Name AR'] || row['nameAr'] || '',
+                                            mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || '').trim(),
+                                            subscriptionType: row['Subscription type'] || row['subscriptionType'] || 'Basic',
+                                            loyaltyJoiningDate: formatExcelDate(rawJoining),
+                                            premiumExpiryDate: formatExcelDate(rawExpiry),
+                                            email: row['E-mail Address'] || row['email'] || ''
+                                        };
+                                    }
+                                    push(patientsRef, patientRecord);
+                                    count++;
+                                }
+                            }
+                        });
+                        alert(`Successfully imported ${count} new records! (Duplicates skipped)`);
+                        fileInput.value = '';
+                    } catch (err) {
+                        console.error(err);
+                        alert("Error parsing Excel file. Please ensure the column structure is correct.");
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                Papa.parse(file, {
+                    header: true,
+                    complete: function(results) {
+                        let count = 0;
+                        results.data.forEach(row => {
+                            const profileNo = row['Profile #'] || row['profileNumber'];
+                            if(profileNo) {
+                                const profileStr = String(profileNo).trim();
+                                const exists = Object.values(patientsCache).some(p => p.profileNumber && p.profileNumber.trim() === profileStr);
+                                if (!exists) {
+                                    let patientRecord = {};
+                                    if (currentEnv === 'b2c') {
+                                        const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
+                                        const rawFirstTest = row['First Order Date'] || row['First Test Date'] || row['firstTestDate'];
+                                        patientRecord = {
+                                            profileNumber: profileStr,
+                                            nameEn: row['Name (EN)'] || row['nameEn'] || '',
+                                            nameAr: row['Name (AR)'] || row['nameAr'] || '',
+                                            mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || '').trim(),
+                                            dob: formatExcelDate(rawDob),
+                                            gender: row['Gender'] || row['gender'] || 'Male',
+                                            nationality: row['Nationality'] || row['nationality'] || 'Jordan',
+                                            firstTestDate: formatExcelDate(rawFirstTest),
+                                            classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
+                                            subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
+                                        };
+                                    } else {
+                                        const rawJoining = row['Loyalty Joining Date'] || row['loyaltyJoiningDate'];
+                                        const rawExpiry = row['Premium Subscription Expiry Date'] || row['premiumExpiryDate'];
+                                        patientRecord = {
+                                            profileNumber: profileStr,
+                                            nameEn: row['Business Entity Name EN'] || row['nameEn'] || '',
+                                            nameAr: row['Business Entity Name AR'] || row['nameAr'] || '',
+                                            mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || '').trim(),
+                                            subscriptionType: row['Subscription type'] || row['subscriptionType'] || 'Basic',
+                                            loyaltyJoiningDate: formatExcelDate(rawJoining),
+                                            premiumExpiryDate: formatExcelDate(rawExpiry),
+                                            email: row['E-mail Address'] || row['email'] || ''
+                                        };
+                                    }
+                                    push(patientsRef, patientRecord);
+                                    count++;
+                                }
+                            }
+                        });
+                        alert(`Successfully imported ${count} new records! (Duplicates skipped)`);
+                        fileInput.value = ''
+                    }
+                });
+            }
+        }
+
+        window.downloadCSV = function() {
+            get(patientsRef).then((snapshot) => {
+                if(snapshot.exists()) {
+                    const data = Object.values(snapshot.val());
+                    const csv = Papa.unparse(data);
+                    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.setAttribute("download", `${currentEnv}_profiles.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            });
+        }
+
+        window.downloadAllDataExcel = function() {
+            const wb = XLSX.utils.book_new();
+
+            const patientsData = patientsCache ? Object.values(patientsCache) : [];
+            const wsPatients = XLSX.utils.json_to_sheet(patientsData);
+            XLSX.utils.book_append_sheet(wb, wsPatients, currentEnv === 'b2c' ? "Patients Profile" : "Business Profile");
+
+            const earnData = earnCache ? Object.values(earnCache) : [];
+            const wsEarn = XLSX.utils.json_to_sheet(earnData);
+            XLSX.utils.book_append_sheet(wb, wsEarn, "Points Earned");
+
+            const redeemData = redeemCache ? Object.values(redeemCache) : [];
+            const wsRedeem = XLSX.utils.json_to_sheet(redeemData);
+            XLSX.utils.book_append_sheet(wb, wsRedeem, "Redeemed Points");
+
+            const wsBirthdays = XLSX.utils.json_to_sheet(birthdaysCacheList);
+            XLSX.utils.book_append_sheet(wb, wsBirthdays, currentEnv === 'b2c' ? "Upcoming Birthdays" : "Upcoming Anniversary");
+
+            XLSX.writeFile(wb, `BioSenses_${currentEnv.toUpperCase()}_Complete_Data.xlsx`);
+        }
+
+        window.clearDatabase = function() {
+            const pwd = prompt(`⚠️ WARNING: This will permanently delete ALL ${currentEnv.toUpperCase()} profiles and transactions.\nEnter password to confirm:`);
+            if (pwd === null) return;
+            if (pwd !== "828282") {
+                alert("Incorrect password! Action cancelled.");
+                return;
+            }
+
+            Promise.all([
+                set(patientsRef, null),
+                set(earnRef, null),
+                set(redeemRef, null)
+            ]).then(() => {
+                alert(`${currentEnv.toUpperCase()} database has been completely cleared and reset successfully.`);
+            }).catch((error) => {
+                console.error("Error clearing database: ", error);
+                alert("An error occurred while clearing the database.");
+            });
+        }
+    </script>
 </body>
 </html>
