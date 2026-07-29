@@ -871,8 +871,8 @@
                 });
 
                 const b2bRedOptions = [
-                    {val: '1000 - 10000 <> 15 JOD / 1000', amt: 1000},
-                    {val: '>10000 <> 17JOD / 1000', amt: 10001}
+                    {val: 'Standard Redemption <> 15 JOD / 1000', amt: 1000},
+                    {val: 'Tiered Redemption <> 17 JOD / 1000', amt: 1000}
                 ];
                 b2bRedOptions.forEach(opt => {
                     redOptionSelect.innerHTML += `<option value="${opt.val}" data-amt="${opt.amt}">${opt.val}</option>`;
@@ -1271,44 +1271,29 @@
         window.updateRedemptionOption = function() {
             const select = document.getElementById('redOption');
             if(!select || select.selectedIndex < 0) return;
-            const selectedOptText = select.options[select.selectedIndex].value;
             const amountInput = document.getElementById('redAmount');
 
             if (currentEnv === 'b2c') {
                 const amt = select.options[select.selectedIndex].getAttribute('data-amt');
                 amountInput.value = amt;
                 amountInput.readOnly = true;
+                amountInput.removeAttribute('min');
+                amountInput.removeAttribute('step');
             } else {
-                // B2B: Allow entering custom values, prefill minimum or suggested value based on option
+                // B2B: Allow entering any valid 1000 multiplication with minimum 1000
                 amountInput.readOnly = false;
-                if (selectedOptText.includes('1000 - 10000')) {
-                    amountInput.min = 1000;
-                    amountInput.max = 10000;
-                    if (Number(amountInput.value) < 1000 || Number(amountInput.value) > 10000) {
-                        amountInput.value = 1000;
-                    }
-                } else if (selectedOptText.includes('>10000')) {
-                    amountInput.min = 11000;
-                    amountInput.removeAttribute('max');
-                    if (Number(amountInput.value) < 11000) {
-                        amountInput.value = 11000;
-                    }
+                amountInput.min = 1000;
+                amountInput.step = 1000;
+                amountInput.removeAttribute('max');
+                if (Number(amountInput.value) < 1000) {
+                    amountInput.value = 1000;
                 }
             }
         }
 
         window.validateRedemptionAmountInput = function(input) {
             if (currentEnv === 'b2b') {
-                const val = Number(input.value);
-                const select = document.getElementById('redOption');
-                const selectedOptText = select ? select.value : '';
-
-                if (selectedOptText.includes('1000 - 10000')) {
-                    if (val > 10000) input.value = 10000;
-                    if (val < 1000) input.value = 1000;
-                } else if (selectedOptText.includes('>10000')) {
-                    if (val <= 10000) input.value = 11000;
-                }
+                // Keep input open without enforced strict clamping upper bounds, validation happens on submit
             }
         }
 
@@ -1572,7 +1557,7 @@
                             }
                         });
                         alert(`Successfully imported ${count} new records! (Duplicates skipped)`);
-                        fileInput.value = '';
+                        fileInput.value = ''
                     }
                 });
             }
