@@ -151,7 +151,7 @@
 
     <!-- VIEW 3: MAIN APPLICATION CONTAINER (SHARED STRUCTURE FOR B2C & B2B) -->
     <div id="appMainView" class="app-view">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm" id="portalNavbar">
             <div class="container-fluid">
                 <a class="navbar-brand d-flex align-items-center gap-2" href="#" id="portalBrandTitle">
                     <i class="bi bi-hospital"></i> <span id="brandNameText">BioSenses Loyalty Portal</span>
@@ -168,7 +168,7 @@
             <!-- Navigation Tabs -->
             <ul class="nav nav-tabs mb-4" id="portalTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button">Patients Profile</button>
+                    <button class="nav-link active" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button"><span id="tabProfilesTitle">Patients Profile</span></button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="earn-tab" data-bs-toggle="tab" data-bs-target="#earn" type="button">Points Earned</button>
@@ -177,104 +177,149 @@
                     <button class="nav-link" id="redeem-tab" data-bs-toggle="tab" data-bs-target="#redeem" type="button">Redeemed Points</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="birthdays-tab" data-bs-toggle="tab" data-bs-target="#birthdays" type="button">Upcoming Birthdays</button>
+                    <button class="nav-link" id="birthdays-tab" data-bs-toggle="tab" data-bs-target="#birthdays" type="button"><span id="tabAnniversaryTitle">Upcoming Birthdays</span></button>
                 </li>
             </ul>
 
             <div class="tab-content" id="portalContent">
                 
-                <!-- MODULE 1: PATIENTS PROFILE -->
+                <!-- MODULE 1: PATIENTS PROFILE / BUSINESS PROFILE -->
                 <div class="tab-pane fade show active" id="patients" role="tabpanel">
                     <div class="card patient-card p-4 mb-4">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-primary text-white rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                <i class="bi bi-person-plus-fill fs-5"></i>
+                                <i class="bi bi-person-plus-fill fs-5" id="formHeaderIcon"></i>
                             </div>
                             <div>
-                                <h4 class="mb-0 text-dark fw-bold">Manage Patients Profile</h4>
-                                <small class="text-muted">Register and maintain patient demographic and loyalty details securely.</small>
+                                <h4 class="mb-0 text-dark fw-bold" id="formMainTitle">Manage Patients Profile</h4>
+                                <small class="text-muted" id="formSubTitle">Register and maintain patient demographic and loyalty details securely.</small>
                             </div>
                         </div>
 
                         <form id="patientForm" class="row g-3">
                             <input type="hidden" id="patientFirebaseKey">
                             
-                            <div class="col-12"><div class="form-section-title">1. Identification & Personal Info</div></div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-semibold">Profile Number <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="profileNumber" placeholder="e.g., P-1001" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-semibold">Name (EN) <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="nameEn" placeholder="Full name in English" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Name (AR)</label>
-                                <input type="text" class="form-control" id="nameAr" placeholder="الاسم بالعربي">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="mobileNumber" placeholder="Mobile number" required>
+                            <div class="col-12"><div class="form-section-title" id="formSection1Title">1. Identification & Personal Info</div></div>
+                            
+                            <!-- B2C Specific Fields Wrapper -->
+                            <div id="b2cFieldsWrapper" class="row g-3 m-0 p-0">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Profile Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control b2c-req" id="profileNumber" placeholder="e.g., P-1001">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Name (EN) <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control b2c-req" id="nameEn" placeholder="Full name in English">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Name (AR)</label>
+                                    <input type="text" class="form-control" id="nameAr" placeholder="الاسم بالعربي">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control b2c-req" id="mobileNumber" placeholder="Mobile number">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control b2c-req" id="dob">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Gender</label>
+                                    <select class="form-select" id="gender">
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Nationality</label>
+                                    <select class="form-select" id="nationality">
+                                        <!-- Populated dynamically -->
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">E-mail Address</label>
+                                    <input type="email" class="form-control" id="email" placeholder="patient@example.com">
+                                </div>
+
+                                <div class="col-12"><div class="form-section-title">2. Membership & Clinical Metrics</div></div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Classification</label>
+                                    <select class="form-select" id="classification">
+                                        <option value="Adult">Adult</option>
+                                        <option value="Child">Child</option>
+                                        <option value="Animal">Animal</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Subscription Type</label>
+                                    <select class="form-select" id="subscriptionType" onchange="togglePremiumExpiryRequirement()">
+                                        <option value="Basic">Basic</option>
+                                        <option value="Premium">Premium</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" id="premiumExpiryLabel">Premium Expiry Date</label>
+                                    <input type="date" class="form-control" id="premiumExpiryDate">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">First Test Date</label>
+                                    <input type="date" class="form-control" id="firstTestDate">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label">Loyalty Joining Date</label>
+                                    <input type="date" class="form-control" id="loyaltyJoiningDate">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label">Referral (No / Name / Mobile)</label>
+                                    <input type="text" class="form-control" id="referredBy" placeholder="Source or referrer details">
+                                </div>
                             </div>
 
-                            <div class="col-md-3">
-                                <label class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="dob" required onchange="calculateDerivedFields()">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Gender</label>
-                                <select class="form-select" id="gender">
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Nationality</label>
-                                <select class="form-select" id="nationality">
-                                    <!-- Populated dynamically -->
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">E-mail Address</label>
-                                <input type="email" class="form-control" id="email" placeholder="patient@example.com">
+                            <!-- B2B Specific Fields Wrapper -->
+                            <div id="b2bFieldsWrapper" class="row g-3 m-0 p-0" style="display: none;">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Profile Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control b2b-req" id="b2b_profileNumber" placeholder="e.g., B-1001">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Business Entity Name EN <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control b2b-req" id="b2b_nameEn" placeholder="Business name in English">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Business Entity Name AR</label>
+                                    <input type="text" class="form-control" id="b2b_nameAr" placeholder="اسم المنشأة بالعربي">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">Subscription Type</label>
+                                    <select class="form-select" id="b2b_subscriptionType" onchange="toggleB2BPremierExpiry()">
+                                        <option value="Basic">Basic</option>
+                                        <option value="Premium">Premium</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Loyalty Joining Date</label>
+                                    <input type="date" class="form-control" id="b2b_loyaltyJoiningDate">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" id="b2b_expiryLabel">Premium Subscription Expiry Date</label>
+                                    <input type="date" class="form-control" id="b2b_premiumExpiryDate">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control b2b-req" id="b2b_mobileNumber" placeholder="Business mobile number">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">E-mail Address</label>
+                                    <input type="email" class="form-control" id="b2b_email" placeholder="business@example.com">
+                                </div>
                             </div>
 
-                            <div class="col-12"><div class="form-section-title">2. Membership & Clinical Metrics</div></div>
-                            <div class="col-md-3">
-                                <label class="form-label">Classification</label>
-                                <select class="form-select" id="classification">
-                                    <option value="Adult">Adult</option>
-                                    <option value="Child">Child</option>
-                                    <option value="Animal">Animal</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Subscription Type</label>
-                                <select class="form-select" id="subscriptionType" onchange="togglePremiumExpiryRequirement()">
-                                    <option value="Basic">Basic</option>
-                                    <option value="Premium">Premium</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label" id="premiumExpiryLabel">Premium Expiry Date</label>
-                                <input type="date" class="form-control" id="premiumExpiryDate">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">First Test Date</label>
-                                <input type="date" class="form-control" id="firstTestDate">
-                            </div>
-
-                            <div class="col-md-3">
-                                <label class="form-label">Loyalty Joining Date</label>
-                                <input type="date" class="form-control" id="loyaltyJoiningDate">
-                            </div>
-                            <div class="col-md-5">
-                                <label class="form-label">Referral (No / Name / Mobile)</label>
-                                <input type="text" class="form-control" id="referredBy" placeholder="Source or referrer details">
-                            </div>
-
-                            <div class="col-md-4 d-flex align-items-end gap-2 mt-4">
-                                <button type="submit" class="btn btn-success flex-grow-1 py-2 fw-semibold shadow-sm"><i class="bi bi-check-circle me-1"></i> Save Patient</button>
+                            <div class="col-md-4 d-flex align-items-end gap-2 mt-4 ms-auto">
+                                <button type="submit" class="btn btn-success flex-grow-1 py-2 fw-semibold shadow-sm"><i class="bi bi-check-circle me-1"></i> <span id="saveButtonText">Save Patient</span></button>
                                 <button type="reset" class="btn btn-outline-secondary py-2 px-3" onclick="resetPatientForm()"><i class="bi bi-x-circle"></i></button>
                             </div>
                         </form>
@@ -298,9 +343,9 @@
                     <!-- Patients Table -->
                     <div class="card shadow-sm p-4 border-0 rounded-3">
                         <div class="row mb-3 align-items-center">
-                            <div class="col-md-6"><h5 class="fw-bold mb-0 text-secondary">Registered Patients</h5></div>
+                            <div class="col-md-6"><h5 class="fw-bold mb-0 text-secondary" id="tableHeaderTitle">Registered Patients</h5></div>
                             <div class="col-md-6">
-                                <input type="text" id="searchPatients" class="form-control form-control-sm" placeholder="Search patients by profile, name, mobile..." onkeyup="filterPatientsTable()">
+                                <input type="text" id="searchPatients" class="form-control form-control-sm" placeholder="Search profiles..." onkeyup="filterPatientsTable()">
                             </div>
                         </div>
                         <div class="table-responsive">
@@ -308,11 +353,11 @@
                                 <thead>
                                     <tr>
                                         <th onclick="sortTable('patientsTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
-                                        <th onclick="sortTable('patientsTable', 1)">Name (EN) <i class="bi bi-arrow-down-up"></i></th>
-                                        <th onclick="sortTable('patientsTable', 2)">Mobile <i class="bi bi-arrow-down-up"></i></th>
-                                        <th onclick="sortTable('patientsTable', 3)">Age <i class="bi bi-arrow-down-up"></i></th>
-                                        <th onclick="sortTable('patientsTable', 4)">Class <i class="bi bi-arrow-down-up"></i></th>
-                                        <th onclick="sortTable('patientsTable', 5)">Sub. Type <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 1)"><span id="tblColNameEn">Name (EN)</span> <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 2)"><span id="tblColNameAr">Name (AR)</span> <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 3)"><span id="tblColMeta">Age</span> <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 4)"><span id="tblColClass">Class</span> <i class="bi bi-arrow-down-up"></i></th>
+                                        <th onclick="sortTable('patientsTable', 5)"><span id="tblColSub">Sub. Type</span> <i class="bi bi-arrow-down-up"></i></th>
                                         <th onclick="sortTable('patientsTable', 6)">Earned <i class="bi bi-arrow-down-up"></i></th>
                                         <th onclick="sortTable('patientsTable', 7)">Redeemed <i class="bi bi-arrow-down-up"></i></th>
                                         <th onclick="sortTable('patientsTable', 8)">Balance <i class="bi bi-arrow-down-up"></i></th>
@@ -337,9 +382,7 @@
                             <div class="col-md-3">
                                 <label class="form-label">Reason</label>
                                 <select class="form-select" id="earnReason">
-                                    <option>Spending</option><option>Referrals</option><option>Healthy Lifestyle</option>
-                                    <option>Occasions</option><option>Health Achievement</option><option>Customer Experience</option>
-                                    <option>Corporate</option><option>Community</option><option>Experience</option>
+                                    <!-- Populated dynamically based on environment -->
                                 </select>
                             </div>
                             <div class="col-md-3">
@@ -376,9 +419,7 @@
                             <div class="col-md-4">
                                 <select id="filterReason" class="form-select form-select-sm" onchange="filterTransactions()">
                                     <option value="">Filter by Reason...</option>
-                                    <option>Spending</option><option>Referrals</option><option>Healthy Lifestyle</option>
-                                    <option>Occasions</option><option>Health Achievement</option><option>Customer Experience</option>
-                                    <option>Corporate</option><option>Community</option><option>Experience</option>
+                                    <!-- Populated dynamically -->
                                 </select>
                             </div>
                         </div>
@@ -413,14 +454,7 @@
                             <div class="col-md-4">
                                 <label class="form-label">Redemption Option</label>
                                 <select class="form-select" id="redOption" onchange="updateRedemptionAmount()">
-                                    <option value="250 <> 5 JOD" data-amt="250">250 &lt;&gt; 5 JOD</option>
-                                    <option value="500 <> 10 JOD" data-amt="500">500 &lt;&gt; 10 JOD</option>
-                                    <option value="750 <> 15 JOD" data-amt="750">750 &lt;&gt; 15 JOD</option>
-                                    <option value="1000 <> 20 JOD" data-amt="1000">1000 &lt;&gt; 20 JOD</option>
-                                    <option value="1500 <> Free Basic Checkup" data-amt="1500">1500 &lt;&gt; Free Basic Checkup</option>
-                                    <option value="2000 <> 35 JOD" data-amt="2000">2000 &lt;&gt; 35 JOD</option>
-                                    <option value="2500 <> Free comprehensive Checkup" data-amt="2500">2500 &lt;&gt; Free comprehensive Checkup</option>
-                                    <option value="5000 <> Premium Subscription" data-amt="5000">5000 &lt;&gt; Premium Subscription</option>
+                                    <!-- Populated dynamically based on environment -->
                                 </select>
                             </div>
                             <div class="col-md-4">
@@ -469,22 +503,22 @@
                     </div>
                 </div>
 
-                <!-- MODULE 4: UPCOMING BIRTHDAYS -->
+                <!-- MODULE 4: UPCOMING BIRTHDAYS / UPCOMING ANNIVERSARY -->
                 <div class="tab-pane fade" id="birthdays" role="tabpanel">
                     <div class="card shadow-sm p-4 border-0 rounded-3">
                         <div class="row mb-3 align-items-center">
                             <div class="col-md-6">
-                                <h4 class="mb-1 fw-bold text-secondary">Upcoming Patient Birthdays</h4>
-                                <p class="text-muted mb-0 small">Profiles ordered sequentially by their upcoming birthday anniversary from today.</p>
+                                <h4 class="mb-1 fw-bold text-secondary" id="anniversaryHeaderTitle">Upcoming Patient Birthdays</h4>
+                                <p class="text-muted mb-0 small" id="anniversarySubTitle">Profiles ordered sequentially by their upcoming birthday anniversary from today.</p>
                             </div>
                             <div class="col-md-6">
-                                <input type="text" id="searchBirthdays" class="form-control form-control-sm" placeholder="Search birthdays..." onkeyup="filterBirthdaysTable()">
+                                <input type="text" id="searchBirthdays" class="form-control form-control-sm" placeholder="Search upcoming anniversaries..." onkeyup="filterBirthdaysTable()">
                             </div>
                         </div>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover align-middle small" id="birthdaysTable">
                                 <thead>
-                                    <tr>
+                                    <tr id="anniversaryTableHeaderRow">
                                         <th onclick="sortTable('birthdaysTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
                                         <th onclick="sortTable('birthdaysTable', 1)">Name (EN) <i class="bi bi-arrow-down-up"></i></th>
                                         <th onclick="sortTable('birthdaysTable', 2)">Mobile Number <i class="bi bi-arrow-down-up"></i></th>
@@ -577,6 +611,7 @@
         document.addEventListener("DOMContentLoaded", () => { 
             populateCountries(); 
             togglePremiumExpiryRequirement(); 
+            toggleB2BPremierExpiry();
             
             // Check login state
             if (localStorage.getItem('isLoggedIn') === 'true') {
@@ -642,11 +677,52 @@
             currentEnv = env;
             const badge = document.getElementById('envBadgeDisplay');
             const brandText = document.getElementById('brandNameText');
+            const navbar = document.getElementById('portalNavbar');
             
+            const b2cWrapper = document.getElementById('b2cFieldsWrapper');
+            const b2bWrapper = document.getElementById('b2bFieldsWrapper');
+
             if (env === 'b2c') {
                 badge.innerText = 'B2C Portal';
                 badge.className = 'badge bg-light text-primary px-3 py-2 fw-bold';
                 brandText.innerText = 'BioSenses B2C Loyalty Portal';
+                navbar.className = 'navbar navbar-expand-lg navbar-dark bg-primary shadow-sm';
+                
+                b2cWrapper.style.display = 'flex';
+                b2bWrapper.style.display = 'none';
+
+                // Set required attributes appropriately
+                document.querySelectorAll('.b2c-req').forEach(el => el.required = true);
+                document.querySelectorAll('.b2b-req').forEach(el => el.required = false);
+
+                // Titles & Labels for B2C
+                document.getElementById('tabProfilesTitle').innerText = 'Patients Profile';
+                document.getElementById('tabAnniversaryTitle').innerText = 'Upcoming Birthdays';
+                document.getElementById('formHeaderIcon').className = 'bi bi-person-plus-fill fs-5';
+                document.getElementById('formMainTitle').innerText = 'Manage Patients Profile';
+                document.getElementById('formSubTitle').innerText = 'Register and maintain patient demographic and loyalty details securely.';
+                document.getElementById('formSection1Title').innerText = '1. Identification & Personal Info';
+                document.getElementById('saveButtonText').innerText = 'Save Patient';
+                document.getElementById('tableHeaderTitle').innerText = 'Registered Patients';
+
+                document.getElementById('tblColNameEn').innerText = 'Name (EN)';
+                document.getElementById('tblColNameAr').innerText = 'Name (AR)';
+                document.getElementById('tblColMeta').innerText = 'Age';
+                document.getElementById('tblColClass').innerText = 'Class';
+                document.getElementById('tblColSub').innerText = 'Sub. Type';
+
+                document.getElementById('anniversaryHeaderTitle').innerText = 'Upcoming Patient Birthdays';
+                document.getElementById('anniversarySubTitle').innerText = 'Profiles ordered sequentially by their upcoming birthday anniversary from today.';
+                document.getElementById('anniversaryTableHeaderRow').innerHTML = `
+                    <th onclick="sortTable('birthdaysTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 1)">Name (EN) <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 2)">Mobile Number <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 3)">Date of Birth <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 4)">Upcoming Birthday <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 5)">Days Until Birthday <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 6)">Turning Age <i class="bi bi-arrow-down-up"></i></th>
+                `;
+
                 patientsRef = ref(db, 'b2c/patients');
                 earnRef = ref(db, 'b2c/transactionsEarned');
                 redeemRef = ref(db, 'b2c/transactionsRedeemed');
@@ -654,10 +730,50 @@
                 badge.innerText = 'B2B Portal';
                 badge.className = 'badge bg-light text-success px-3 py-2 fw-bold';
                 brandText.innerText = 'BioSenses B2B Loyalty Portal';
+                navbar.className = 'navbar navbar-expand-lg navbar-dark bg-success shadow-sm';
+                
+                b2cWrapper.style.display = 'none';
+                b2bWrapper.style.display = 'flex';
+
+                // Set required attributes appropriately
+                document.querySelectorAll('.b2c-req').forEach(el => el.required = false);
+                document.querySelectorAll('.b2b-req').forEach(el => el.required = true);
+
+                // Titles & Labels for B2B
+                document.getElementById('tabProfilesTitle').innerText = 'Business Profile';
+                document.getElementById('tabAnniversaryTitle').innerText = 'Upcoming Anniversary';
+                document.getElementById('formHeaderIcon').className = 'bi bi-building-fill fs-5';
+                document.getElementById('formMainTitle').innerText = 'Manage Business Profile';
+                document.getElementById('formSubTitle').innerText = 'Register and maintain business partner demographic and loyalty details securely.';
+                document.getElementById('formSection1Title').innerText = '1. Business Identification & Details';
+                document.getElementById('saveButtonText').innerText = 'Save Business';
+                document.getElementById('tableHeaderTitle').innerText = 'Registered Businesses';
+
+                document.getElementById('tblColNameEn').innerText = 'Business Name (EN)';
+                document.getElementById('tblColNameAr').innerText = 'Business Name (AR)';
+                document.getElementById('tblColMeta').innerText = 'Mobile';
+                document.getElementById('tblColClass').innerText = 'Joining Date';
+                document.getElementById('tblColSub').innerText = 'Sub. Type';
+
+                document.getElementById('anniversaryHeaderTitle').innerText = 'Upcoming Business Anniversary';
+                document.getElementById('anniversarySubTitle').innerText = 'Business profiles ordered sequentially by their upcoming joining or subscription expiry anniversary from today.';
+                document.getElementById('anniversaryTableHeaderRow').innerHTML = `
+                    <th onclick="sortTable('birthdaysTable', 0)">Profile # <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 1)">Business Entity Name (EN) <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 2)">Mobile Number <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 3)">Anniversary Type <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 4)">Original Date <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 5)">Upcoming Anniversary Date <i class="bi bi-arrow-down-up"></i></th>
+                    <th onclick="sortTable('birthdaysTable', 6)">Days Until Anniversary <i class="bi bi-arrow-down-up"></i></th>
+                `;
+
                 patientsRef = ref(db, 'b2b/patients');
                 earnRef = ref(db, 'b2b/transactionsEarned');
                 redeemRef = ref(db, 'b2b/transactionsRedeemed');
             }
+
+            // Setup Dropdowns for Reason and Redemption based on env
+            setupEnvironmentDropdowns();
 
             // Clean up previous listeners if any
             if (unsubscribePatients) unsubscribePatients();
@@ -703,6 +819,68 @@
             }
         }
 
+        window.toggleB2BPremierExpiry = function() {
+            const subType = document.getElementById('b2b_subscriptionType').value;
+            const expiryInput = document.getElementById('b2b_premiumExpiryDate');
+            const label = document.getElementById('b2b_expiryLabel');
+            if (subType === 'Premium') {
+                expiryInput.required = true;
+                label.innerHTML = 'Premium Subscription Expiry Date <span class="text-danger">*</span>';
+            } else {
+                expiryInput.required = false;
+                label.innerHTML = 'Premium Subscription Expiry Date';
+                expiryInput.value = '';
+            }
+        }
+
+        function setupEnvironmentDropdowns() {
+            const earnReasonSelect = document.getElementById('earnReason');
+            const filterReasonSelect = document.getElementById('filterReason');
+            const redOptionSelect = document.getElementById('redOption');
+
+            earnReasonSelect.innerHTML = '';
+            filterReasonSelect.innerHTML = '<option value="">Filter by Reason...</option>';
+            redOptionSelect.innerHTML = '';
+
+            if (currentEnv === 'b2c') {
+                const reasons = ['Spending', 'Referrals', 'Healthy Lifestyle', 'Occasions', 'Health Achievement', 'Customer Experience', 'Corporate', 'Community', 'Experience'];
+                reasons.forEach(r => {
+                    earnReasonSelect.innerHTML += `<option>${r}</option>`;
+                    filterReasonSelect.innerHTML += `<option>${r}</option>`;
+                });
+
+                const redOptions = [
+                    {val: '250 <> 5 JOD', amt: 250},
+                    {val: '500 <> 10 JOD', amt: 500},
+                    {val: '750 <> 15 JOD', amt: 750},
+                    {val: '1000 <> 20 JOD', amt: 1000},
+                    {val: '1500 <> Free Basic Checkup', amt: 1500},
+                    {val: '2000 <> 35 JOD', amt: 2000},
+                    {val: '2500 <> Free comprehensive Checkup', amt: 2500},
+                    {val: '5000 <> Premium Subscription', amt: 5000}
+                ];
+                redOptions.forEach(opt => {
+                    redOptionSelect.innerHTML += `<option value="${opt.val}" data-amt="${opt.amt}">${opt.val}</option>`;
+                });
+            } else {
+                // B2B specific options
+                const b2bReasons = ['Spending', 'Occasions'];
+                b2bReasons.forEach(r => {
+                    earnReasonSelect.innerHTML += `<option>${r}</option>`;
+                    filterReasonSelect.innerHTML += `<option>${r}</option>`;
+                });
+
+                const b2bRedOptions = [
+                    {val: '1000 - 10000 <> 15 JOD / 1000', amt: 1000},
+                    {val: '>10000 <> 17JOD / 1000', amt: 10001}
+                ];
+                b2bRedOptions.forEach(opt => {
+                    redOptionSelect.innerHTML += `<option value="${opt.val}" data-amt="${opt.amt}">${opt.val}</option>`;
+                });
+            }
+            updateRedemptionAmount();
+        }
+
         function isProfileValid(profileNo) {
             if (!profileNo || !patientsCache) return false;
             const target = profileNo.trim();
@@ -722,7 +900,23 @@
                 Object.keys(patientsCache).forEach(key => {
                     const p = patientsCache[key];
                     const profileNo = p.profileNumber ? p.profileNumber.trim() : '';
-                    const age = p.dob ? (new Date().getFullYear() - new Date(p.dob).getFullYear()) + ' yrs' : 'N/A';
+                    
+                    let col2Val = '';
+                    let col3Val = '';
+                    let col4Val = '';
+                    let col5Val = '';
+
+                    if (currentEnv === 'b2c') {
+                        col2Val = p.nameAr || '';
+                        col3Val = p.dob ? (new Date().getFullYear() - new Date(p.dob).getFullYear()) + ' yrs' : 'N/A';
+                        col4Val = p.classification || '';
+                        col5Val = p.subscriptionType || 'Basic';
+                    } else {
+                        col2Val = p.nameAr || '';
+                        col3Val = p.mobileNumber || '';
+                        col4Val = p.loyaltyJoiningDate || 'N/A';
+                        col5Val = p.subscriptionType || 'Basic';
+                    }
 
                     let totalEarned = 0;
                     if(earnCache) {
@@ -749,16 +943,16 @@
                         <tr>
                             <td>${p.profileNumber || ''}</td>
                             <td>${p.nameEn || ''}</td>
-                            <td>${p.mobileNumber || ''}</td>
-                            <td>${age}</td>
-                            <td>${p.classification || ''}</td>
-                            <td>${p.subscriptionType || 'Basic'}</td>
+                            <td>${col2Val}</td>
+                            <td>${col3Val}</td>
+                            <td>${col4Val}</td>
+                            <td>${col5Val}</td>
                             <td><span class="badge bg-success">${totalEarned}</span></td>
                             <td><span class="badge bg-danger">${totalRedeemed}</span></td>
                             <td><span class="badge ${balanceBadgeClass}">${totalBalance}</span></td>
                             <td class="text-center">
-                                <i class="bi bi-pencil-square text-primary action-icon me-3" title="Edit Patient" onclick="editPatient('${key}', ${JSON.stringify(p).replace(/"/g, '&quot;')})"></i>
-                                <i class="bi bi-trash3-fill text-danger action-icon" title="Delete Patient" onclick="deletePatient('${key}')"></i>
+                                <i class="bi bi-pencil-square text-primary action-icon me-3" title="Edit Profile" onclick="editPatient('${key}', ${JSON.stringify(p).replace(/"/g, '&quot;')})"></i>
+                                <i class="bi bi-trash3-fill text-danger action-icon" title="Delete Profile" onclick="deletePatient('${key}')"></i>
                             </td>
                         </tr>
                     `;
@@ -786,53 +980,112 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            Object.values(patientsCache).forEach(p => {
-                if (!p.dob) return;
-                const dobDate = new Date(p.dob + 'T00:00:00');
-                if (isNaN(dobDate)) return;
+            if (currentEnv === 'b2c') {
+                Object.values(patientsCache).forEach(p => {
+                    if (!p.dob) return;
+                    const dobDate = new Date(p.dob + 'T00:00:00');
+                    if (isNaN(dobDate)) return;
 
-                let bYear = today.getFullYear();
-                let nextBday = new Date(bYear, dobDate.getMonth(), dobDate.getDate());
-                nextBday.setHours(0, 0, 0, 0);
-
-                if (nextBday < today) {
-                    bYear++;
-                    nextBday = new Date(bYear, dobDate.getMonth(), dobDate.getDate());
+                    let bYear = today.getFullYear();
+                    let nextBday = new Date(bYear, dobDate.getMonth(), dobDate.getDate());
                     nextBday.setHours(0, 0, 0, 0);
-                }
 
-                const diffTime = nextBday - today;
-                const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-                const turningAge = bYear - dobDate.getFullYear();
+                    if (nextBday < today) {
+                        bYear++;
+                        nextBday = new Date(bYear, dobDate.getMonth(), dobDate.getDate());
+                        nextBday.setHours(0, 0, 0, 0);
+                    }
 
-                birthdaysCacheList.push({
-                    "Profile #": p.profileNumber || '',
-                    "Name (EN)": p.nameEn || '',
-                    "Mobile Number": p.mobileNumber || '',
-                    "Date of Birth": p.dob,
-                    "Upcoming Birthday": nextBday.toISOString().split('T')[0],
-                    "Days Until Birthday": diffDays,
-                    "Turning Age": turningAge
+                    const diffTime = nextBday - today;
+                    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+                    const turningAge = bYear - dobDate.getFullYear();
+
+                    birthdaysCacheList.push({
+                        "Profile #": p.profileNumber || '',
+                        "Name (EN)": p.nameEn || '',
+                        "Mobile Number": p.mobileNumber || '',
+                        "Date of Birth": p.dob,
+                        "Upcoming Birthday": nextBday.toISOString().split('T')[0],
+                        "Days Until Birthday": diffDays,
+                        "Turning Age": turningAge
+                    });
                 });
-            });
 
-            birthdaysCacheList.sort((a, b) => a["Days Until Birthday"] - b["Days Until Birthday"]);
+                birthdaysCacheList.sort((a, b) => a["Days Until Birthday"] - b["Days Until Birthday"]);
 
-            birthdaysCacheList.forEach(item => {
-                const diffDays = item["Days Until Birthday"];
-                const badgeClass = diffDays === 0 ? 'bg-success' : (diffDays <= 7 ? 'bg-warning text-dark' : 'bg-secondary');
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${item["Profile #"]}</td>
-                        <td>${item["Name (EN)"]}</td>
-                        <td>${item["Mobile Number"]}</td>
-                        <td>${item["Date of Birth"]}</td>
-                        <td>${item["Upcoming Birthday"]}</td>
-                        <td><span class="badge ${badgeClass}">${diffDays === 0 ? 'Today! 🎉' : diffDays + ' days'}</span></td>
-                        <td>${item["Turning Age"]} yrs</td>
-                    </tr>
-                `;
-            });
+                birthdaysCacheList.forEach(item => {
+                    const diffDays = item["Days Until Birthday"];
+                    const badgeClass = diffDays === 0 ? 'bg-success' : (diffDays <= 7 ? 'bg-warning text-dark' : 'bg-secondary');
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item["Profile #"]}</td>
+                            <td>${item["Name (EN)"]}</td>
+                            <td>${item["Mobile Number"]}</td>
+                            <td>${item["Date of Birth"]}</td>
+                            <td>${item["Upcoming Birthday"]}</td>
+                            <td><span class="badge ${badgeClass}">${diffDays === 0 ? 'Today! 🎉' : diffDays + ' days'}</span></td>
+                            <td>${item["Turning Age"]} yrs</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                // B2B Anniversary logic: check both Loyalty Joining Date and Premium Subscription Expiry Date
+                Object.values(patientsCache).forEach(p => {
+                    const datesToCheck = [];
+                    if (p.loyaltyJoiningDate) {
+                        datesToCheck.push({ type: 'Loyalty Joining Anniversary', dateStr: p.loyaltyJoiningDate });
+                    }
+                    if (p.subscriptionType === 'Premium' && p.premiumExpiryDate) {
+                        datesToCheck.push({ type: 'Premium Expiry Anniversary', dateStr: p.premiumExpiryDate });
+                    }
+
+                    datesToCheck.forEach(itemInfo => {
+                        const origDate = new Date(itemInfo.dateStr + 'T00:00:00');
+                        if (isNaN(origDate)) return;
+
+                        let bYear = today.getFullYear();
+                        let nextAnniv = new Date(bYear, origDate.getMonth(), origDate.getDate());
+                        nextAnniv.setHours(0, 0, 0, 0);
+
+                        if (nextAnniv < today) {
+                            bYear++;
+                            nextAnniv = new Date(bYear, origDate.getMonth(), origDate.getDate());
+                            nextAnniv.setHours(0, 0, 0, 0);
+                        }
+
+                        const diffTime = nextAnniv - today;
+                        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                        birthdaysCacheList.push({
+                            "Profile #": p.profileNumber || '',
+                            "Business Entity Name (EN)": p.nameEn || '',
+                            "Mobile Number": p.mobileNumber || '',
+                            "Anniversary Type": itemInfo.type,
+                            "Original Date": itemInfo.dateStr,
+                            "Upcoming Anniversary Date": nextAnniv.toISOString().split('T')[0],
+                            "Days Until Anniversary": diffDays
+                        });
+                    });
+                });
+
+                birthdaysCacheList.sort((a, b) => a["Days Until Anniversary"] - b["Days Until Anniversary"]);
+
+                birthdaysCacheList.forEach(item => {
+                    const diffDays = item["Days Until Anniversary"];
+                    const badgeClass = diffDays === 0 ? 'bg-success' : (diffDays <= 7 ? 'bg-warning text-dark' : 'bg-secondary');
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item["Profile #"]}</td>
+                            <td>${item["Business Entity Name (EN)"]}</td>
+                            <td>${item["Mobile Number"]}</td>
+                            <td><span class="badge bg-info text-dark">${item["Anniversary Type"]}</span></td>
+                            <td>${item["Original Date"]}</td>
+                            <td>${item["Upcoming Anniversary Date"]}</td>
+                            <td><span class="badge ${badgeClass}">${diffDays === 0 ? 'Today! 🎉' : diffDays + ' days'}</span></td>
+                        </tr>
+                    `;
+                });
+            }
             filterBirthdaysTable();
         }
 
@@ -845,7 +1098,7 @@
             });
         }
 
-        // --- MODULE 1 LOGIC: PATIENTS ---
+        // --- MODULE 1 LOGIC: PATIENTS / BUSINESS ---
         window.calculateDerivedFields = function() {
             const dobVal = document.getElementById('dob').value;
             if(!dobVal) return;
@@ -854,7 +1107,41 @@
         document.getElementById('patientForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const key = document.getElementById('patientFirebaseKey').value;
-            const inputProfileNo = document.getElementById('profileNumber').value.trim();
+            
+            let inputProfileNo = '';
+            let patientData = {};
+
+            if (currentEnv === 'b2c') {
+                inputProfileNo = document.getElementById('profileNumber').value.trim();
+                patientData = {
+                    profileNumber: inputProfileNo,
+                    nameEn: document.getElementById('nameEn').value,
+                    nameAr: document.getElementById('nameAr').value,
+                    mobileNumber: document.getElementById('mobileNumber').value,
+                    dob: document.getElementById('dob').value,
+                    gender: document.getElementById('gender').value,
+                    firstTestDate: document.getElementById('firstTestDate').value,
+                    classification: document.getElementById('classification').value,
+                    subscriptionType: document.getElementById('subscriptionType').value,
+                    loyaltyJoiningDate: document.getElementById('loyaltyJoiningDate').value,
+                    premiumExpiryDate: document.getElementById('premiumExpiryDate').value,
+                    email: document.getElementById('email').value,
+                    nationality: document.getElementById('nationality').value,
+                    referredBy: document.getElementById('referredBy').value
+                };
+            } else {
+                inputProfileNo = document.getElementById('b2b_profileNumber').value.trim();
+                patientData = {
+                    profileNumber: inputProfileNo,
+                    nameEn: document.getElementById('b2b_nameEn').value,
+                    nameAr: document.getElementById('b2b_nameAr').value,
+                    mobileNumber: document.getElementById('b2b_mobileNumber').value,
+                    subscriptionType: document.getElementById('b2b_subscriptionType').value,
+                    loyaltyJoiningDate: document.getElementById('b2b_loyaltyJoiningDate').value,
+                    premiumExpiryDate: document.getElementById('b2b_premiumExpiryDate').value,
+                    email: document.getElementById('b2b_email').value
+                };
+            }
 
             const isDuplicate = Object.entries(patientsCache).some(([existingKey, p]) => {
                 return p.profileNumber && p.profileNumber.trim() === inputProfileNo && existingKey !== key;
@@ -864,23 +1151,6 @@
                 alert(`Error: Profile Number "${inputProfileNo}" already exists in the system. Profile numbers must be unique.`);
                 return;
             }
-
-            const patientData = {
-                profileNumber: inputProfileNo,
-                nameEn: document.getElementById('nameEn').value,
-                nameAr: document.getElementById('nameAr').value,
-                mobileNumber: document.getElementById('mobileNumber').value,
-                dob: document.getElementById('dob').value,
-                gender: document.getElementById('gender').value,
-                firstTestDate: document.getElementById('firstTestDate').value,
-                classification: document.getElementById('classification').value,
-                subscriptionType: document.getElementById('subscriptionType').value,
-                loyaltyJoiningDate: document.getElementById('loyaltyJoiningDate').value,
-                premiumExpiryDate: document.getElementById('premiumExpiryDate').value,
-                email: document.getElementById('email').value,
-                nationality: document.getElementById('nationality').value,
-                referredBy: document.getElementById('referredBy').value
-            };
 
             if(key) {
                 update(ref(db, `${currentEnv}/patients/` + key), patientData);
@@ -892,25 +1162,38 @@
             document.getElementById('patientFirebaseKey').value = '';
             populateCountries();
             togglePremiumExpiryRequirement();
+            toggleB2BPremierExpiry();
         });
 
         window.editPatient = function(key, p) {
             document.getElementById('patientFirebaseKey').value = key;
-            document.getElementById('profileNumber').value = p.profileNumber || '';
-            document.getElementById('nameEn').value = p.nameEn || '';
-            document.getElementById('nameAr').value = p.nameAr || '';
-            document.getElementById('mobileNumber').value = p.mobileNumber || '';
-            document.getElementById('dob').value = p.dob || '';
-            document.getElementById('gender').value = p.gender || 'Male';
-            document.getElementById('nationality').value = p.nationality || 'Jordan';
-            document.getElementById('firstTestDate').value = p.firstTestDate || '';
-            document.getElementById('classification').value = p.classification || 'Adult';
-            document.getElementById('subscriptionType').value = p.subscriptionType || 'Basic';
-            document.getElementById('loyaltyJoiningDate').value = p.loyaltyJoiningDate || '';
-            document.getElementById('premiumExpiryDate').value = p.premiumExpiryDate || '';
-            document.getElementById('email').value = p.email || '';
-            document.getElementById('referredBy').value = p.referredBy || '';
-            togglePremiumExpiryRequirement();
+            if (currentEnv === 'b2c') {
+                document.getElementById('profileNumber').value = p.profileNumber || '';
+                document.getElementById('nameEn').value = p.nameEn || '';
+                document.getElementById('nameAr').value = p.nameAr || '';
+                document.getElementById('mobileNumber').value = p.mobileNumber || '';
+                document.getElementById('dob').value = p.dob || '';
+                document.getElementById('gender').value = p.gender || 'Male';
+                document.getElementById('nationality').value = p.nationality || 'Jordan';
+                document.getElementById('firstTestDate').value = p.firstTestDate || '';
+                document.getElementById('classification').value = p.classification || 'Adult';
+                document.getElementById('subscriptionType').value = p.subscriptionType || 'Basic';
+                document.getElementById('loyaltyJoiningDate').value = p.loyaltyJoiningDate || '';
+                document.getElementById('premiumExpiryDate').value = p.premiumExpiryDate || '';
+                document.getElementById('email').value = p.email || '';
+                document.getElementById('referredBy').value = p.referredBy || '';
+                togglePremiumExpiryRequirement();
+            } else {
+                document.getElementById('b2b_profileNumber').value = p.profileNumber || '';
+                document.getElementById('b2b_nameEn').value = p.nameEn || '';
+                document.getElementById('b2b_nameAr').value = p.nameAr || '';
+                document.getElementById('b2b_mobileNumber').value = p.mobileNumber || '';
+                document.getElementById('b2b_subscriptionType').value = p.subscriptionType || 'Basic';
+                document.getElementById('b2b_loyaltyJoiningDate').value = p.loyaltyJoiningDate || '';
+                document.getElementById('b2b_premiumExpiryDate').value = p.premiumExpiryDate || '';
+                document.getElementById('b2b_email').value = p.email || '';
+                toggleB2BPremierExpiry();
+            }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -924,6 +1207,7 @@
             document.getElementById('patientFirebaseKey').value = '';
             populateCountries();
             togglePremiumExpiryRequirement();
+            toggleB2BPremierExpiry();
         }
 
         // --- MODULE 2 LOGIC: POINTS EARNED ---
@@ -932,7 +1216,7 @@
             const profileNo = document.getElementById('earnProfileNumber').value;
 
             if (!isProfileValid(profileNo)) {
-                alert(`Validation Error: Profile number "${profileNo}" does not exist in the system. Please register the patient first.`);
+                alert(`Validation Error: Profile number "${profileNo}" does not exist in the system. Please register the profile first.`);
                 return;
             }
 
@@ -998,7 +1282,7 @@
             const targetAmount = Number(document.getElementById('redAmount').value);
 
             if (!isProfileValid(profileNo)) {
-                alert(`Validation Error: Profile number "${profileNo}" does not exist in the system. Please register the patient first.`);
+                alert(`Validation Error: Profile number "${profileNo}" does not exist in the system. Please register the profile first.`);
                 return;
             }
 
@@ -1099,7 +1383,6 @@
         function formatExcelDate(val) {
             if (!val) return '';
             
-            // 1. If it's an Excel numeric serial number
             if (!isNaN(val) && typeof val === 'number') {
                 const excelEpoch = new Date(Date.UTC(1899, 11, 30));
                 const jsDate = new Date(excelEpoch.getTime() + val * 86400000);
@@ -1109,10 +1392,7 @@
                 return `${year}-${month}-${day}`;
             }
 
-            // 2. If it's a string (e.g., 'YYYY-MM-DD' or parsed text)
             const strVal = String(val).trim();
-            
-            // If it's already in YYYY-MM-DD format, return it directly to avoid any date shifting
             const isoParts = strVal.split(/[-/]/);
             if (isoParts.length === 3 && isoParts[0].length === 4) {
                 const year = isoParts[0];
@@ -1121,11 +1401,10 @@
                 return `${year}-${month}-${day}`;
             }
 
-            // Fallback for other string date formats parsed via UTC
             const dateObj = new Date(strVal);
             if (!isNaN(dateObj)) {
                 const year = dateObj.getUTCFullYear();
-                const month = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+                const month = String(dateObj.getUTCFullYear() + 1 ? dateObj.getUTCMonth() + 1 : 1).padStart(2, '0');
                 const day = String(dateObj.getUTCDate()).padStart(2, '0');
                 return `${year}-${month}-${day}`;
             }
@@ -1158,27 +1437,42 @@
                                 const profileStr = String(profileNo).trim();
                                 const exists = Object.values(patientsCache).some(p => p.profileNumber && p.profileNumber.trim() === profileStr);
                                 if (!exists) {
-                                    const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
-                                    const rawFirstTest = row['First Order Date'] || row['First Test Date'] || row['firstTestDate'];
-
-                                    const patientRecord = {
-                                        profileNumber: profileStr,
-                                        nameEn: row['Name (EN)'] || row['nameEn'] || '',
-                                        nameAr: row['Name (AR)'] || row['nameAr'] || '',
-                                        mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || '').trim(),
-                                        dob: formatExcelDate(rawDob),
-                                        gender: row['Gender'] || row['gender'] || 'Male',
-                                        nationality: row['Nationality'] || row['nationality'] || 'Jordan',
-                                        firstTestDate: formatExcelDate(rawFirstTest),
-                                        classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
-                                        subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
-                                    };
+                                    let patientRecord = {};
+                                    if (currentEnv === 'b2c') {
+                                        const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
+                                        const rawFirstTest = row['First Order Date'] || row['First Test Date'] || row['firstTestDate'];
+                                        patientRecord = {
+                                            profileNumber: profileStr,
+                                            nameEn: row['Name (EN)'] || row['nameEn'] || '',
+                                            nameAr: row['Name (AR)'] || row['nameAr'] || '',
+                                            mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || '').trim(),
+                                            dob: formatExcelDate(rawDob),
+                                            gender: row['Gender'] || row['gender'] || 'Male',
+                                            nationality: row['Nationality'] || row['nationality'] || 'Jordan',
+                                            firstTestDate: formatExcelDate(rawFirstTest),
+                                            classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
+                                            subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
+                                        };
+                                    } else {
+                                        const rawJoining = row['Loyalty Joining Date'] || row['loyaltyJoiningDate'];
+                                        const rawExpiry = row['Premium Subscription Expiry Date'] || row['premiumExpiryDate'];
+                                        patientRecord = {
+                                            profileNumber: profileStr,
+                                            nameEn: row['Business Entity Name EN'] || row['nameEn'] || '',
+                                            nameAr: row['Business Entity Name AR'] || row['nameAr'] || '',
+                                            mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || '').trim(),
+                                            subscriptionType: row['Subscription type'] || row['subscriptionType'] || 'Basic',
+                                            loyaltyJoiningDate: formatExcelDate(rawJoining),
+                                            premiumExpiryDate: formatExcelDate(rawExpiry),
+                                            email: row['E-mail Address'] || row['email'] || ''
+                                        };
+                                    }
                                     push(patientsRef, patientRecord);
                                     count++;
                                 }
                             }
                         });
-                        alert(`Successfully imported ${count} new records from Excel! (Duplicates skipped)`);
+                        alert(`Successfully imported ${count} new records! (Duplicates skipped)`);
                         fileInput.value = '';
                     } catch (err) {
                         console.error(err);
@@ -1197,27 +1491,42 @@
                                 const profileStr = String(profileNo).trim();
                                 const exists = Object.values(patientsCache).some(p => p.profileNumber && p.profileNumber.trim() === profileStr);
                                 if (!exists) {
-                                    const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
-                                    const rawFirstTest = row['First Order Date'] || row['First Test Date'] || row['firstTestDate'];
-
-                                    const patientRecord = {
-                                        profileNumber: profileStr,
-                                        nameEn: row['Name (EN)'] || row['nameEn'] || '',
-                                        nameAr: row['Name (AR)'] || row['nameAr'] || '',
-                                        mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || '').trim(),
-                                        dob: formatExcelDate(rawDob),
-                                        gender: row['Gender'] || row['gender'] || 'Male',
-                                        nationality: row['Nationality'] || row['nationality'] || 'Jordan',
-                                        firstTestDate: formatExcelDate(rawFirstTest),
-                                        classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
-                                        subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
-                                    };
+                                    let patientRecord = {};
+                                    if (currentEnv === 'b2c') {
+                                        const rawDob = row['Date Of Birth'] || row['Date of Birth'] || row['dob'];
+                                        const rawFirstTest = row['First Order Date'] || row['First Test Date'] || row['firstTestDate'];
+                                        patientRecord = {
+                                            profileNumber: profileStr,
+                                            nameEn: row['Name (EN)'] || row['nameEn'] || '',
+                                            nameAr: row['Name (AR)'] || row['nameAr'] || '',
+                                            mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || '').trim(),
+                                            dob: formatExcelDate(rawDob),
+                                            gender: row['Gender'] || row['gender'] || 'Male',
+                                            nationality: row['Nationality'] || row['nationality'] || 'Jordan',
+                                            firstTestDate: formatExcelDate(rawFirstTest),
+                                            classification: row['Clasification'] || row['Classification'] || row['classification'] || 'Adult',
+                                            subscriptionType: row['Subscription Type'] || row['subscriptionType'] || 'Basic'
+                                        };
+                                    } else {
+                                        const rawJoining = row['Loyalty Joining Date'] || row['loyaltyJoiningDate'];
+                                        const rawExpiry = row['Premium Subscription Expiry Date'] || row['premiumExpiryDate'];
+                                        patientRecord = {
+                                            profileNumber: profileStr,
+                                            nameEn: row['Business Entity Name EN'] || row['nameEn'] || '',
+                                            nameAr: row['Business Entity Name AR'] || row['nameAr'] || '',
+                                            mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || '').trim(),
+                                            subscriptionType: row['Subscription type'] || row['subscriptionType'] || 'Basic',
+                                            loyaltyJoiningDate: formatExcelDate(rawJoining),
+                                            premiumExpiryDate: formatExcelDate(rawExpiry),
+                                            email: row['E-mail Address'] || row['email'] || ''
+                                        };
+                                    }
                                     push(patientsRef, patientRecord);
                                     count++;
                                 }
                             }
                         });
-                        alert(`Successfully imported ${count} new records from CSV! (Duplicates skipped)`);
+                        alert(`Successfully imported ${count} new records! (Duplicates skipped)`);
                         fileInput.value = '';
                     }
                 });
@@ -1232,7 +1541,7 @@
                     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                     const link = document.createElement("a");
                     link.href = URL.createObjectURL(blob);
-                    link.setAttribute("download", `${currentEnv}_patients_profiles.csv`);
+                    link.setAttribute("download", `${currentEnv}_profiles.csv`);
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -1245,7 +1554,7 @@
 
             const patientsData = patientsCache ? Object.values(patientsCache) : [];
             const wsPatients = XLSX.utils.json_to_sheet(patientsData);
-            XLSX.utils.book_append_sheet(wb, wsPatients, "Patients Profile");
+            XLSX.utils.book_append_sheet(wb, wsPatients, currentEnv === 'b2c' ? "Patients Profile" : "Business Profile");
 
             const earnData = earnCache ? Object.values(earnCache) : [];
             const wsEarn = XLSX.utils.json_to_sheet(earnData);
@@ -1256,13 +1565,13 @@
             XLSX.utils.book_append_sheet(wb, wsRedeem, "Redeemed Points");
 
             const wsBirthdays = XLSX.utils.json_to_sheet(birthdaysCacheList);
-            XLSX.utils.book_append_sheet(wb, wsBirthdays, "Upcoming Birthdays");
+            XLSX.utils.book_append_sheet(wb, wsBirthdays, currentEnv === 'b2c' ? "Upcoming Birthdays" : "Upcoming Anniversary");
 
             XLSX.writeFile(wb, `BioSenses_${currentEnv.toUpperCase()}_Complete_Data.xlsx`);
         }
 
         window.clearDatabase = function() {
-            const pwd = prompt(`⚠️ WARNING: This will permanently delete ALL ${currentEnv.toUpperCase()} patients and transactions.\nEnter password to confirm:`);
+            const pwd = prompt(`⚠️ WARNING: This will permanently delete ALL ${currentEnv.toUpperCase()} profiles and transactions.\nEnter password to confirm:`);
             if (pwd === null) return;
             if (pwd !== "828282") {
                 alert("Incorrect password! Action cancelled.");
