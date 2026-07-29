@@ -54,7 +54,7 @@
 <body class="bg-light">
 
     <!-- VIEW 1: LOGIN -->
-    <div id="loginView" class="app-view active container">
+    <div id="loginView" class="app-view container">
         <div class="row justify-content-center align-items-center min-vh-100">
             <div class="col-md-5">
                 <div class="card shadow-sm p-4 border-0 rounded-4">
@@ -453,7 +453,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Redemption Option</label>
-                                <select class="form-select" id="redOption" onchange="updateRedemptionAmount()">
+                                <select class="form-select" id="redOption" onchange="updateRedemptionOption()">
                                     <!-- Populated dynamically based on environment -->
                                 </select>
                             </div>
@@ -466,8 +466,8 @@
                                 <input type="text" class="form-control" id="redDescription">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Points Amount</label>
-                                <input type="number" class="form-control" id="redAmount" readonly>
+                                <label class="form-label" id="redAmountLabel">Points Amount (Min 1000, Multiples of 1000)</label>
+                                <input type="number" class="form-control" id="redAmount" min="1000" step="1000" oninput="validateRedemptionAmountInput(this)" required>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Redeemed By</label>
@@ -878,7 +878,7 @@
                     redOptionSelect.innerHTML += `<option value="${opt.val}" data-amt="${opt.amt}">${opt.val}</option>`;
                 });
             }
-            updateRedemptionAmount();
+            updateRedemptionOption();
         }
 
         function isProfileValid(profileNo) {
@@ -1268,18 +1268,63 @@
         }
 
         // --- MODULE 3 LOGIC: REDEEMED POINTS ---
-        window.updateRedemptionAmount = function() {
+        window.updateRedemptionOption = function() {
             const select = document.getElementById('redOption');
             if(!select || select.selectedIndex < 0) return;
-            const amt = select.options[select.selectedIndex].getAttribute('data-amt');
-            document.getElementById('redAmount').value = amt;
+            const selectedOptText = select.options[select.selectedIndex].value;
+            const amountInput = document.getElementById('redAmount');
+
+            if (currentEnv === 'b2c') {
+                const amt = select.options[select.selectedIndex].getAttribute('data-amt');
+                amountInput.value = amt;
+                amountInput.readOnly = true;
+            } else {
+                // B2B: Allow entering custom values, prefill minimum or suggested value based on option
+                amountInput.readOnly = false;
+                if (selectedOptText.includes('1000 - 10000')) {
+                    amountInput.min = 1000;
+                    amountInput.max = 10000;
+                    if (Number(amountInput.value) < 1000 || Number(amountInput.value) > 10000) {
+                        amountInput.value = 1000;
+                    }
+                } else if (selectedOptText.includes('>10000')) {
+                    amountInput.min = 11000;
+                    amountInput.removeAttribute('max');
+                    if (Number(amountInput.value) < 11000) {
+                        amountInput.value = 11000;
+                    }
+                }
+            }
         }
-        document.addEventListener("DOMContentLoaded", () => { updateRedemptionAmount(); });
+
+        window.validateRedemptionAmountInput = function(input) {
+            if (currentEnv === 'b2b') {
+                const val = Number(input.value);
+                const select = document.getElementById('redOption');
+                const selectedOptText = select ? select.value : '';
+
+                if (selectedOptText.includes('1000 - 10000')) {
+                    if (val > 10000) input.value = 10000;
+                    if (val < 1000) input.value = 1000;
+                } else if (selectedOptText.includes('>10000')) {
+                    if (val <= 10000) input.value = 11000;
+                }
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => { updateRedemptionOption(); });
 
         document.getElementById('redeemForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const profileNo = document.getElementById('redProfileNumber').value.trim();
             const targetAmount = Number(document.getElementById('redAmount').value);
+
+            if (currentEnv === 'b2b') {
+                if (targetAmount < 1000 || targetAmount % 1000 !== 0) {
+                    alert(`Validation Error: Redeemed amount must be at least 1000 and a valid multiple of 1000.`);
+                    return;
+                }
+            }
 
             if (!isProfileValid(profileNo)) {
                 alert(`Validation Error: Profile number "${profileNo}" does not exist in the system. Please register the profile first.`);
@@ -1321,7 +1366,7 @@
             };
             push(redeemRef, redeemData);
             this.reset();
-            updateRedemptionAmount();
+            updateRedemptionOption();
         });
 
         window.renderRedeemTable = function(data) {
