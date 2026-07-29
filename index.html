@@ -61,7 +61,7 @@
                     <div class="text-center mb-4">
                         <div class="bg-primary text-white rounded-circle p-3 d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
                             <i class="bi bi-shield-lock-fill fs-3"></i>
-                        </i></div>
+                        </div>
                         <h3 class="fw-bold text-dark">Portal Login</h3>
                         <p class="text-muted small">Enter your credentials to access the loyalty system</p>
                     </div>
@@ -214,7 +214,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="mobileNumber" placeholder="+962..." required>
+                                <input type="text" class="form-control" id="mobileNumber" placeholder="Mobile number" required>
                             </div>
 
                             <div class="col-md-3">
@@ -788,7 +788,7 @@
 
             Object.values(patientsCache).forEach(p => {
                 if (!p.dob) return;
-                const dobDate = new Date(p.dob);
+                const dobDate = new Date(p.dob + 'T00:00:00');
                 if (isNaN(dobDate)) return;
 
                 let bYear = today.getFullYear();
@@ -1095,19 +1095,34 @@
             rowsArray.forEach(row => tbody.appendChild(row));
         }
 
-        // --- DATE NORMALIZER FOR UPLOADS ---
+        // --- DATE NORMALIZER FOR UPLOADS (FIXES TIMEZONE DAY-SHIFT) ---
         function formatExcelDate(val) {
             if (!val) return '';
+            // If it's an Excel serial number
             if (!isNaN(val) && typeof val === 'number') {
                 const excelEpoch = new Date(1899, 11, 30);
                 const jsDate = new Date(excelEpoch.getTime() + val * 86400000);
-                return jsDate.toISOString().split('T')[0];
+                // Extract UTC components to prevent local timezone shift
+                const year = jsDate.getUTCFullYear();
+                const month = String(jsDate.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(jsDate.getUTCDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
             }
-            const parsed = Date.parse(val);
-            if (!isNaN(parsed)) {
-                return new Date(parsed).toISOString().split('T')[0];
+            // If it's a date string (e.g., 'YYYY-MM-DD' or similar)
+            const strVal = String(val).trim();
+            const dateObj = new Date(strVal);
+            if (!isNaN(dateObj)) {
+                // Use UTC methods if formatted as ISO date string or fallback to local date components split
+                const parts = strVal.split(/[-/]/);
+                if (parts.length === 3 && parts[0].length === 4) {
+                    return strVal.substring(0, 10); // already YYYY-MM-DD
+                }
+                const year = dateObj.getFullYear();
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
             }
-            return String(val).trim();
+            return strVal;
         }
 
         // --- BULK FILE & EXPORT UTILITIES ---
@@ -1142,7 +1157,7 @@
                                         profileNumber: profileStr,
                                         nameEn: row['Name (EN)'] || row['nameEn'] || '',
                                         nameAr: row['Name (AR)'] || row['nameAr'] || '',
-                                        mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || ''),
+                                        mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || '').trim(),
                                         dob: formatExcelDate(rawDob),
                                         gender: row['Gender'] || row['gender'] || 'Male',
                                         nationality: row['Nationality'] || row['nationality'] || 'Jordan',
@@ -1181,7 +1196,7 @@
                                         profileNumber: profileStr,
                                         nameEn: row['Name (EN)'] || row['nameEn'] || '',
                                         nameAr: row['Name (AR)'] || row['nameAr'] || '',
-                                        mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || ''),
+                                        mobileNumber: String(row['Mobile Number'] || row['mobileNumber'] || '').trim(),
                                         dob: formatExcelDate(rawDob),
                                         gender: row['Gender'] || row['gender'] || 'Male',
                                         nationality: row['Nationality'] || row['nationality'] || 'Jordan',
