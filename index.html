@@ -213,7 +213,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Name (AR)</label>
-                                    <input type="text" class="form-control" id="nameAr" placeholder="الاسم بالعربي">
+                                    <input type="text" class="form-control" id="nameAr" placeholder=" ">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
@@ -289,7 +289,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label">Business Entity Name AR</label>
-                                    <input type="text" class="form-control" id="b2b_nameAr" placeholder="اسم المنشأة بالعربي">
+                                    <input type="text" class="form-control" id="b2b_nameAr" placeholder="  ">
                                 </div>
 
                                 <div class="col-md-4">
@@ -373,8 +373,9 @@
                 <!-- MODULE 2: POINTS EARNED -->
                 <div class="tab-pane fade" id="earn" role="tabpanel">
                     <div class="card shadow-sm p-4 mb-4 border-0 rounded-3">
-                        <h4 class="mb-3 text-secondary fw-bold">Add Points Transaction</h4>
+                        <h4 class="mb-3 text-secondary fw-bold" id="earnFormTitle">Add Points Transaction</h4>
                         <form id="earnForm" class="row g-3">
+                            <input type="hidden" id="earnFirebaseKey">
                             <div class="col-md-3">
                                 <label class="form-label">Profile Number</label>
                                 <input type="text" class="form-control" id="earnProfileNumber" required>
@@ -405,8 +406,9 @@
                                 <label class="form-label">Msg Sent</label>
                                 <select class="form-select" id="msgSent"><option>Yes</option><option>No</option></select>
                             </div>
-                            <div class="col-md-3 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary w-100">Add Earn Transaction</button>
+                            <div class="col-md-3 d-flex align-items-end gap-2">
+                                <button type="submit" class="btn btn-primary flex-grow-1" id="earnSubmitBtn">Add Earn Transaction</button>
+                                <button type="button" class="btn btn-outline-secondary px-3" onclick="resetEarnForm()" id="earnResetBtn" style="display:none;"><i class="bi bi-x-circle"></i></button>
                             </div>
                         </form>
                     </div>
@@ -434,6 +436,7 @@
                                         <th onclick="sortTable('earnTable', 4)">Earned <i class="bi bi-arrow-down-up"></i></th>
                                         <th onclick="sortTable('earnTable', 5)">Expiry <i class="bi bi-arrow-down-up"></i></th>
                                         <th onclick="sortTable('earnTable', 6)">Msg Sent <i class="bi bi-arrow-down-up"></i></th>
+                                        <th class="text-center">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -445,8 +448,9 @@
                 <!-- MODULE 3: REDEEMED POINTS -->
                 <div class="tab-pane fade" id="redeem" role="tabpanel">
                     <div class="card shadow-sm p-4 mb-4 border-0 rounded-3">
-                        <h4 class="mb-3 text-secondary fw-bold">Redeem Points</h4>
+                        <h4 class="mb-3 text-secondary fw-bold" id="redeemFormTitle">Redeem Points</h4>
                         <form id="redeemForm" class="row g-3">
+                            <input type="hidden" id="redeemFirebaseKey">
                             <div class="col-md-4">
                                 <label class="form-label">Profile Number</label>
                                 <input type="text" class="form-control" id="redProfileNumber" required>
@@ -473,8 +477,9 @@
                                 <label class="form-label">Redeemed By</label>
                                 <input type="text" class="form-control" id="redeemedBy" required>
                             </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button type="submit" class="btn btn-danger w-100">Process Redemption</button>
+                            <div class="col-md-2 d-flex align-items-end gap-2">
+                                <button type="submit" class="btn btn-danger flex-grow-1" id="redeemSubmitBtn">Process Redemption</button>
+                                <button type="button" class="btn btn-outline-secondary px-3" onclick="resetRedeemForm()" id="redeemResetBtn" style="display:none;"><i class="bi bi-x-circle"></i></button>
                             </div>
                         </form>
                     </div>
@@ -495,6 +500,7 @@
                                         <th onclick="sortTable('redeemTable', 3)">Date <i class="bi bi-arrow-down-up"></i></th>
                                         <th onclick="sortTable('redeemTable', 4)">Amount <i class="bi bi-arrow-down-up"></i></th>
                                         <th onclick="sortTable('redeemTable', 5)">Redeemed By <i class="bi bi-arrow-down-up"></i></th>
+                                        <th class="text-center">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -1023,7 +1029,7 @@
                             <td>${item["Mobile Number"]}</td>
                             <td>${item["Date of Birth"]}</td>
                             <td>${item["Upcoming Birthday"]}</td>
-                            <td><span class="badge ${badgeClass}">${diffDays === 0 ? 'Today! 🎉' : diffDays + ' days'}</span></td>
+                            <td><span class="badge ${badgeClass}">${diffDays === 0 ? 'Today! ' : diffDays + ' days'}</span></td>
                             <td>${item["Turning Age"]} yrs</td>
                         </tr>
                     `;
@@ -1081,7 +1087,7 @@
                             <td><span class="badge bg-info text-dark">${item["Anniversary Type"]}</span></td>
                             <td>${item["Original Date"]}</td>
                             <td>${item["Upcoming Anniversary Date"]}</td>
-                            <td><span class="badge ${badgeClass}">${diffDays === 0 ? 'Today! 🎉' : diffDays + ' days'}</span></td>
+                            <td><span class="badge ${badgeClass}">${diffDays === 0 ? 'Today! ' : diffDays + ' days'}</span></td>
                         </tr>
                     `;
                 });
@@ -1213,6 +1219,7 @@
         // --- MODULE 2 LOGIC: POINTS EARNED ---
         document.getElementById('earnForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const key = document.getElementById('earnFirebaseKey').value;
             const profileNo = document.getElementById('earnProfileNumber').value;
 
             if (!isProfileValid(profileNo)) {
@@ -1229,15 +1236,51 @@
                 expiryDate: document.getElementById('earnExpiryDate').value,
                 msgSent: document.getElementById('msgSent').value
             };
-            push(earnRef, txnData);
-            this.reset();
+
+            if (key) {
+                update(ref(db, `${currentEnv}/transactionsEarned/` + key), txnData);
+            } else {
+                push(earnRef, txnData);
+            }
+            resetEarnForm();
         });
+
+        window.editEarnTransaction = function(key, t) {
+            document.getElementById('earnFirebaseKey').value = key;
+            document.getElementById('earnProfileNumber').value = t.profileNumber || '';
+            document.getElementById('earnReason').value = t.reason || '';
+            document.getElementById('earnDate').value = t.date || '';
+            document.getElementById('amountEarned').value = t.amountEarned || '';
+            document.getElementById('earnDescription').value = t.description || '';
+            document.getElementById('earnExpiryDate').value = t.expiryDate || '';
+            document.getElementById('msgSent').value = t.msgSent || 'No';
+
+            document.getElementById('earnFormTitle').innerText = 'Edit Points Transaction';
+            document.getElementById('earnSubmitBtn').innerText = 'Update Earn Transaction';
+            document.getElementById('earnResetBtn').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.deleteEarnTransaction = function(key) {
+            if (confirm('Are you sure you want to delete this earned transaction record?')) {
+                remove(ref(db, `${currentEnv}/transactionsEarned/` + key));
+            }
+        }
+
+        window.resetEarnForm = function() {
+            document.getElementById('earnForm').reset();
+            document.getElementById('earnFirebaseKey').value = '';
+            document.getElementById('earnFormTitle').innerText = 'Add Points Transaction';
+            document.getElementById('earnSubmitBtn').innerText = 'Add Earn Transaction';
+            document.getElementById('earnResetBtn').style.display = 'none';
+        }
 
         window.renderEarnTable = function(data) {
             const tbody = document.querySelector('#earnTable tbody');
             tbody.innerHTML = '';
             if(data) {
-                Object.values(data).forEach(t => {
+                Object.keys(data).forEach(key => {
+                    const t = data[key];
                     tbody.innerHTML += `
                         <tr>
                             <td>${t.profileNumber || ''}</td>
@@ -1247,6 +1290,10 @@
                             <td>${t.amountEarned || 0}</td>
                             <td>${t.expiryDate || ''}</td>
                             <td>${t.msgSent || 'No'}</td>
+                            <td class="text-center">
+                                <i class="bi bi-pencil-square text-primary action-icon me-3" title="Edit Transaction" onclick="editEarnTransaction('${key}', ${JSON.stringify(t).replace(/"/g, '&quot;')})"></i>
+                                <i class="bi bi-trash3-fill text-danger action-icon" title="Delete Transaction" onclick="deleteEarnTransaction('${key}')"></i>
+                            </td>
                         </tr>
                     `;
                 });
@@ -1301,6 +1348,7 @@
 
         document.getElementById('redeemForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const key = document.getElementById('redeemFirebaseKey').value;
             const profileNo = document.getElementById('redProfileNumber').value.trim();
             const targetAmount = Number(document.getElementById('redAmount').value);
 
@@ -1327,8 +1375,8 @@
 
             let totalRedeemed = 0;
             if (redeemCache) {
-                Object.values(redeemCache).forEach(r => {
-                    if (r.profileNumber && r.profileNumber.trim() === profileNo) {
+                Object.entries(redeemCache).forEach(([existingKey, r]) => {
+                    if (r.profileNumber && r.profileNumber.trim() === profileNo && existingKey !== key) {
                         totalRedeemed += Number(r.amount) || 0;
                     }
                 });
@@ -1349,16 +1397,52 @@
                 amount: targetAmount,
                 redeemedBy: document.getElementById('redeemedBy').value
             };
-            push(redeemRef, redeemData);
-            this.reset();
-            updateRedemptionOption();
+
+            if (key) {
+                update(ref(db, `${currentEnv}/transactionsRedeemed/` + key), redeemData);
+            } else {
+                push(redeemRef, redeemData);
+            }
+            resetRedeemForm();
         });
+
+        window.editRedeemTransaction = function(key, r) {
+            document.getElementById('redeemFirebaseKey').value = key;
+            document.getElementById('redProfileNumber').value = r.profileNumber || '';
+            document.getElementById('redOption').value = r.redemptionOption || '';
+            updateRedemptionOption();
+            document.getElementById('redDescription').value = r.transactionDescription || '';
+            document.getElementById('redDate').value = r.date || '';
+            document.getElementById('redAmount').value = r.amount || '';
+            document.getElementById('redeemedBy').value = r.redeemedBy || '';
+
+            document.getElementById('redeemFormTitle').innerText = 'Edit Redemption Record';
+            document.getElementById('redeemSubmitBtn').innerText = 'Update Redemption';
+            document.getElementById('redeemResetBtn').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.deleteRedeemTransaction = function(key) {
+            if (confirm('Are you sure you want to delete this redemption record?')) {
+                remove(ref(db, `${currentEnv}/transactionsRedeemed/` + key));
+            }
+        }
+
+        window.resetRedeemForm = function() {
+            document.getElementById('redeemForm').reset();
+            document.getElementById('redeemFirebaseKey').value = '';
+            document.getElementById('redeemFormTitle').innerText = 'Redeem Points';
+            document.getElementById('redeemSubmitBtn').innerText = 'Process Redemption';
+            document.getElementById('redeemResetBtn').style.display = 'none';
+            updateRedemptionOption();
+        }
 
         window.renderRedeemTable = function(data) {
             const tbody = document.querySelector('#redeemTable tbody');
             tbody.innerHTML = '';
             if(data) {
-                Object.values(data).forEach(r => {
+                Object.keys(data).forEach(key => {
+                    const r = data[key];
                     tbody.innerHTML += `
                         <tr>
                             <td>${r.profileNumber || ''}</td>
@@ -1367,6 +1451,10 @@
                             <td>${r.date || ''}</td>
                             <td>${r.amount || 0}</td>
                             <td>${r.redeemedBy || ''}</td>
+                            <td class="text-center">
+                                <i class="bi bi-pencil-square text-primary action-icon me-3" title="Edit Redemption" onclick="editRedeemTransaction('${key}', ${JSON.stringify(r).replace(/"/g, '&quot;')})"></i>
+                                <i class="bi bi-trash3-fill text-danger action-icon" title="Delete Redemption" onclick="deleteRedeemTransaction('${key}')"></i>
+                            </td>
                         </tr>
                     `;
                 });
@@ -1601,7 +1689,7 @@
         }
 
         window.clearDatabase = function() {
-            const pwd = prompt(`⚠️ WARNING: This will permanently delete ALL ${currentEnv.toUpperCase()} profiles and transactions.\nEnter password to confirm:`);
+            const pwd = prompt(` WARNING: This will permanently delete ALL ${currentEnv.toUpperCase()} profiles and transactions.\nEnter password to confirm:`);
             if (pwd === null) return;
             if (pwd !== "828282") {
                 alert("Incorrect password! Action cancelled.");
@@ -1622,3 +1710,4 @@
     </script>
 </body>
 </html>
+```[cite: 1]
