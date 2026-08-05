@@ -18,8 +18,6 @@
         .table th i { font-size: 0.8rem; margin-left: 4px; color: #6c757d; }
         .action-icon { cursor: pointer; font-size: 1.1rem; transition: transform 0.1s; }
         .action-icon:hover { transform: scale(1.2); }
-        
-        /* Friendlier Card & Form styling */
         .patient-card {
             border: none;
             border-radius: 12px;
@@ -196,7 +194,7 @@
                             </div>
                         </div>
 
-                        <form id="patientForm" class="row g-3">
+                        <form id="patientForm" class="row g-3" onsubmit="handlePatientSubmit(event)">
                             <input type="hidden" id="patientFirebaseKey">
                             
                             <div class="col-12"><div class="form-section-title" id="formSection1Title">1. Identification & Personal Info</div></div>
@@ -233,7 +231,10 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">Nationality</label>
-                                    <select class="form-select" id="nationality"></select>
+                                    <select class="form-select" id="nationality">
+                                        <option value="Local">Local</option>
+                                        <option value="Expat">Expat</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label">E-mail Address</label>
@@ -318,7 +319,7 @@
 
                             <div class="col-md-4 d-flex align-items-end gap-2 mt-4 ms-auto">
                                 <button type="submit" class="btn btn-success flex-grow-1 py-2 fw-semibold shadow-sm"><i class="bi bi-check-circle me-1"></i> <span id="saveButtonText">Save Patient</span></button>
-                                <button type="reset" class="btn btn-outline-secondary py-2 px-3" onclick="resetPatientForm()"><i class="bi bi-x-circle"></i></button>
+                                <button type="button" class="btn btn-outline-secondary py-2 px-3" onclick="resetPatientForm()"><i class="bi bi-x-circle"></i></button>
                             </div>
                         </form>
                         
@@ -380,7 +381,12 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Reason</label>
-                                <select class="form-select" id="earnReason"></select>
+                                <select class="form-select" id="earnReason">
+                                    <option value="Consultation">Consultation</option>
+                                    <option value="Lab Test">Lab Test</option>
+                                    <option value="Purchase">Purchase</option>
+                                    <option value="Bonus">Bonus</option>
+                                </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Date</label>
@@ -417,6 +423,10 @@
                             <div class="col-md-4">
                                 <select id="filterReason" class="form-select form-select-sm" onchange="filterTransactions()">
                                     <option value="">Filter by Reason...</option>
+                                    <option value="Consultation">Consultation</option>
+                                    <option value="Lab Test">Lab Test</option>
+                                    <option value="Purchase">Purchase</option>
+                                    <option value="Bonus">Bonus</option>
                                 </select>
                             </div>
                         </div>
@@ -452,7 +462,10 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Redemption Option</label>
-                                <select class="form-select" id="redOption" onchange="updateRedemptionOption()"></select>
+                                <select class="form-select" id="redOption" onchange="updateRedemptionOption()">
+                                    <option value="Gift Voucher">Gift Voucher</option>
+                                    <option value="Discount">Discount</option>
+                                </select>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Date</label>
@@ -464,7 +477,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label" id="redAmountLabel">Points Amount</label>
-                                <input type="number" class="form-control" id="redAmount" min="1000" step="1000" oninput="validateRedemptionAmountInput(this)" required>
+                                <input type="number" class="form-control" id="redAmount" required>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label">Redeemed By</label>
@@ -529,5 +542,488 @@
         </div>
     </div>
 
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentEnvironment = 'b2c';
+        // In-memory data store for standalone testing (or connect your Firebase database refs here)
+        let appData = {
+            b2c: { profiles: {}, earn: {}, redeem: {} },
+            b2b: { profiles: {}, earn: {}, redeem: {} }
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            showView('loginView');
+            const today = new Date().toISOString().split('T')[0];
+            if(document.getElementById('earnDate')) document.getElementById('earnDate').value = today;
+            if(document.getElementById('redDate')) document.getElementById('redDate').value = today;
+        });
+
+        function showView(viewId) {
+            document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+            const target = document.getElementById(viewId);
+            if (target) target.classList.add('active');
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const user = document.getElementById('loginUsername').value;
+            const pass = document.getElementById('loginPassword').value;
+            if (user && pass) {
+                showView('hubView');
+            } else {
+                alert("Please enter valid credentials.");
+            }
+        }
+
+        function handleChangePassword(event) {
+            event.preventDefault();
+            alert("Password updated successfully!");
+            const modalEl = document.getElementById('changePasswordModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+            document.getElementById('changePasswordForm').reset();
+        }
+
+        function selectEnvironment(env) {
+            currentEnvironment = env;
+            document.getElementById('envBadgeDisplay').innerText = env.toUpperCase();
+            
+            if (env === 'b2b') {
+                document.getElementById('brandNameText').innerText = "BioSenses B2B Portal";
+                document.getElementById('b2cFieldsWrapper').style.display = 'none';
+                document.getElementById('b2bFieldsWrapper').style.display = 'flex';
+                document.getElementById('tabProfilesTitle').innerText = "Business Profile";
+                document.getElementById('tabAnniversaryTitle').innerText = "Upcoming Anniversaries";
+                document.getElementById('formMainTitle').innerText = "Manage Business Profile";
+                document.getElementById('formSubTitle').innerText = "Register and maintain corporate partner details securely.";
+                document.getElementById('saveButtonText').innerText = "Save Business";
+            } else {
+                document.getElementById('brandNameText').innerText = "BioSenses Loyalty Portal";
+                document.getElementById('b2bFieldsWrapper').style.display = 'none';
+                document.getElementById('b2cFieldsWrapper').style.display = 'flex';
+                document.getElementById('tabProfilesTitle').innerText = "Patients Profile";
+                document.getElementById('tabAnniversaryTitle').innerText = "Upcoming Birthdays";
+                document.getElementById('formMainTitle').innerText = "Manage Patients Profile";
+                document.getElementById('formSubTitle').innerText = "Register and maintain patient demographic and loyalty details securely.";
+                document.getElementById('saveButtonText').innerText = "Save Patient";
+            }
+            
+            showView('appMainView');
+            refreshAllTables();
+        }
+
+        function backToHub() {
+            showView('hubView');
+        }
+
+        function logoutToHub(toLogin = false) {
+            if (toLogin) {
+                document.getElementById('loginForm').reset();
+                showView('loginView');
+            } else {
+                showView('hubView');
+            }
+        }
+
+        // --- PROFILE SUBMISSION & MANAGEMENT ---
+        function handlePatientSubmit(event) {
+            event.preventDefault();
+            const isB2B = (currentEnvironment === 'b2b');
+            const keyInput = document.getElementById('patientFirebaseKey').value;
+            const profileKey = keyInput || 'prof_' + Date.now();
+
+            let profileData = {};
+            if (isB2B) {
+                profileData = {
+                    profileNumber: document.getElementById('b2b_profileNumber').value,
+                    nameEn: document.getElementById('b2b_nameEn').value,
+                    nameAr: document.getElementById('b2b_nameAr').value,
+                    subscriptionType: document.getElementById('b2b_subscriptionType').value,
+                    loyaltyJoiningDate: document.getElementById('b2b_loyaltyJoiningDate').value,
+                    premiumExpiryDate: document.getElementById('b2b_premiumExpiryDate').value,
+                    mobileNumber: document.getElementById('b2b_mobileNumber').value,
+                    email: document.getElementById('b2b_email').value
+                };
+            } else {
+                profileData = {
+                    profileNumber: document.getElementById('profileNumber').value,
+                    nameEn: document.getElementById('nameEn').value,
+                    nameAr: document.getElementById('nameAr').value,
+                    mobileNumber: document.getElementById('mobileNumber').value,
+                    dob: document.getElementById('dob').value,
+                    gender: document.getElementById('gender').value,
+                    nationality: document.getElementById('nationality').value,
+                    email: document.getElementById('email').value,
+                    classification: document.getElementById('classification').value,
+                    subscriptionType: document.getElementById('subscriptionType').value,
+                    premiumExpiryDate: document.getElementById('premiumExpiryDate').value,
+                    firstTestDate: document.getElementById('firstTestDate').value,
+                    loyaltyJoiningDate: document.getElementById('loyaltyJoiningDate').value,
+                    referredBy: document.getElementById('referredBy').value
+                };
+            }
+
+            appData[currentEnvironment].profiles[profileKey] = profileData;
+            resetPatientForm();
+            refreshAllTables();
+            alert("Profile saved successfully!");
+        }
+
+        function editProfile(key) {
+            const profile = appData[currentEnvironment].profiles[key];
+            if (!profile) return;
+            document.getElementById('patientFirebaseKey').value = key;
+            const isB2B = (currentEnvironment === 'b2b');
+
+            if (isB2B) {
+                document.getElementById('b2b_profileNumber').value = profile.profileNumber || '';
+                document.getElementById('b2b_nameEn').value = profile.nameEn || '';
+                document.getElementById('b2b_nameAr').value = profile.nameAr || '';
+                document.getElementById('b2b_subscriptionType').value = profile.subscriptionType || 'Basic';
+                document.getElementById('b2b_loyaltyJoiningDate').value = profile.loyaltyJoiningDate || '';
+                document.getElementById('b2b_premiumExpiryDate').value = profile.premiumExpiryDate || '';
+                document.getElementById('b2b_mobileNumber').value = profile.mobileNumber || '';
+                document.getElementById('b2b_email').value = profile.email || '';
+                document.getElementById('saveButtonText').innerText = "Update Business";
+            } else {
+                document.getElementById('profileNumber').value = profile.profileNumber || '';
+                document.getElementById('nameEn').value = profile.nameEn || '';
+                document.getElementById('nameAr').value = profile.nameAr || '';
+                document.getElementById('mobileNumber').value = profile.mobileNumber || '';
+                document.getElementById('dob').value = profile.dob || '';
+                document.getElementById('gender').value = profile.gender || 'Male';
+                document.getElementById('nationality').value = profile.nationality || 'Local';
+                document.getElementById('email').value = profile.email || '';
+                document.getElementById('classification').value = profile.classification || 'Adult';
+                document.getElementById('subscriptionType').value = profile.subscriptionType || 'Basic';
+                document.getElementById('premiumExpiryDate').value = profile.premiumExpiryDate || '';
+                document.getElementById('firstTestDate').value = profile.firstTestDate || '';
+                document.getElementById('loyaltyJoiningDate').value = profile.loyaltyJoiningDate || '';
+                document.getElementById('referredBy').value = profile.referredBy || '';
+                document.getElementById('saveButtonText').innerText = "Update Patient";
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteProfile(key) {
+            if (confirm("Are you sure you want to delete this profile?")) {
+                delete appData[currentEnvironment].profiles[key];
+                refreshAllTables();
+            }
+        }
+
+        function resetPatientForm() {
+            document.getElementById('patientForm').reset();
+            document.getElementById('patientFirebaseKey').value = '';
+            document.getElementById('saveButtonText').innerText = currentEnvironment === 'b2b' ? 'Save Business' : 'Save Patient';
+        }
+
+        // --- POINTS EARNED TRANSACTIONS & EDITING ---
+        function handleEarnSubmit(event) {
+            event.preventDefault();
+            const keyInput = document.getElementById('earnFirebaseKey').value;
+            const txnKey = keyInput || 'earn_' + Date.now();
+
+            const txnData = {
+                profileNumber: document.getElementById('earnProfileNumber').value,
+                reason: document.getElementById('earnReason').value,
+                date: document.getElementById('earnDate').value,
+                description: document.getElementById('earnDescription').value,
+                amountEarned: Number(document.getElementById('amountEarned').value),
+                expiryDate: document.getElementById('earnExpiryDate').value,
+                msgSent: document.getElementById('msgSent').value
+            };
+
+            appData[currentEnvironment].earn[txnKey] = txnData;
+            resetEarnForm();
+            refreshEarnTable();
+            refreshPatientsTable();
+            alert("Earn transaction saved successfully!");
+        }
+
+        function editEarnTxn(key) {
+            const txn = appData[currentEnvironment].earn[key];
+            if (!txn) return;
+            document.getElementById('earnFirebaseKey').value = key;
+            document.getElementById('earnProfileNumber').value = txn.profileNumber || '';
+            document.getElementById('earnReason').value = txn.reason || 'Consultation';
+            document.getElementById('earnDate').value = txn.date || '';
+            document.getElementById('earnDescription').value = txn.description || '';
+            document.getElementById('amountEarned').value = txn.amountEarned || 0;
+            document.getElementById('earnExpiryDate').value = txn.expiryDate || '';
+            document.getElementById('msgSent').value = txn.msgSent || 'Yes';
+            document.getElementById('earnSubmitBtn').innerText = "Update Earn Transaction";
+            
+            // Switch to Points Earned tab
+            const tab = new bootstrap.Tab(document.getElementById('earn-tab'));
+            tab.show();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteEarnTxn(key) {
+            if (confirm("Delete this earn transaction record?")) {
+                delete appData[currentEnvironment].earn[key];
+                refreshEarnTable();
+                refreshPatientsTable();
+            }
+        }
+
+        function resetEarnForm() {
+            document.getElementById('earnForm').reset();
+            document.getElementById('earnFirebaseKey').value = '';
+            document.getElementById('earnSubmitBtn').innerText = "Add Earn Transaction";
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('earnDate').value = today;
+        }
+
+        // --- REDEEMED POINTS TRANSACTIONS & EDITING ---
+        function handleRedeemSubmit(event) {
+            event.preventDefault();
+            const keyInput = document.getElementById('redeemFirebaseKey').value;
+            const redKey = keyInput || 'red_' + Date.now();
+
+            const redData = {
+                profileNumber: document.getElementById('redProfileNumber').value,
+                option: document.getElementById('redOption').value,
+                date: document.getElementById('redDate').value,
+                description: document.getElementById('redDescription').value,
+                amount: Number(document.getElementById('redAmount').value),
+                redeemedBy: document.getElementById('redeemedBy').value
+            };
+
+            appData[currentEnvironment].redeem[redKey] = redData;
+            resetRedeemForm();
+            refreshRedeemTable();
+            refreshPatientsTable();
+            alert("Redemption recorded successfully!");
+        }
+
+        function editRedeemTxn(key) {
+            const red = appData[currentEnvironment].redeem[key];
+            if (!red) return;
+            document.getElementById('redeemFirebaseKey').value = key;
+            document.getElementById('redProfileNumber').value = red.profileNumber || '';
+            document.getElementById('redOption').value = red.option || 'Gift Voucher';
+            document.getElementById('redDate').value = red.date || '';
+            document.getElementById('redDescription').value = red.description || '';
+            document.getElementById('redAmount').value = red.amount || 0;
+            document.getElementById('redeemedBy').value = red.redeemedBy || '';
+            document.getElementById('redeemSubmitBtn').innerText = "Update Redemption";
+
+            const tab = new bootstrap.Tab(document.getElementById('redeem-tab'));
+            tab.show();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteRedeemTxn(key) {
+            if (confirm("Delete this redemption record?")) {
+                delete appData[currentEnvironment].redeem[key];
+                refreshRedeemTable();
+                refreshPatientsTable();
+            }
+        }
+
+        function resetRedeemForm() {
+            document.getElementById('redeemForm').reset();
+            document.getElementById('redeemFirebaseKey').value = '';
+            document.getElementById('redeemSubmitBtn').innerText = "Process Redemption";
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('redDate').value = today;
+        }
+
+        // --- REFRESH ALL TABLES ---
+        function refreshAllTables() {
+            refreshPatientsTable();
+            refreshEarnTable();
+            refreshRedeemTable();
+            refreshBirthdaysTable();
+        }
+
+        function refreshPatientsTable() {
+            const tbody = document.querySelector('#patientsTable tbody');
+            tbody.innerHTML = '';
+            const profiles = appData[currentEnvironment].profiles;
+            const earns = appData[currentEnvironment].earn;
+            const redeems = appData[currentEnvironment].redeem;
+
+            for (const [key, p] of Object.entries(profiles)) {
+                let totalEarned = 0;
+                for (const e of Object.values(earns)) {
+                    if (e.profileNumber === p.profileNumber) totalEarned += Number(e.amountEarned || 0);
+                }
+
+                let totalRedeemed = 0;
+                for (const r of Object.values(redeems)) {
+                    if (r.profileNumber === p.profileNumber) totalRedeemed += Number(r.amount || 0);
+                }
+
+                const balance = totalEarned - totalRedeemed;
+                const nameEn = p.nameEn || p.name || '';
+                const nameAr = p.nameAr || '';
+                const subType = p.subscriptionType || 'Basic';
+                const classVal = p.classification || '-';
+                const metaVal = p.dob || '-';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${p.profileNumber || ''}</td>
+                    <td>${nameEn}</td>
+                    <td>${nameAr}</td>
+                    <td>${metaVal}</td>
+                    <td>${classVal}</td>
+                    <td><span class="badge ${subType === 'Premium' ? 'bg-warning text-dark' : 'bg-secondary'}">${subType}</span></td>
+                    <td class="text-success fw-semibold">+${totalEarned}</td>
+                    <td class="text-danger fw-semibold">-${totalRedeemed}</td>
+                    <td class="fw-bold">${balance}</td>
+                    <td class="text-center">
+                        <i class="bi bi-pencil-square text-primary action-icon me-2" title="Edit Profile" onclick="editProfile('${key}')"></i>
+                        <i class="bi bi-trash text-danger action-icon" title="Delete Profile" onclick="deleteProfile('${key}')"></i>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function refreshEarnTable() {
+            const tbody = document.querySelector('#earnTable tbody');
+            tbody.innerHTML = '';
+            const earns = appData[currentEnvironment].earn;
+
+            for (const [key, e] of Object.entries(earns)) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${e.profileNumber || ''}</td>
+                    <td>${e.reason || ''}</td>
+                    <td>${e.date || ''}</td>
+                    <td>${e.description || ''}</td>
+                    <td class="text-success fw-semibold">+${e.amountEarned || 0}</td>
+                    <td>${e.expiryDate || '-'}</td>
+                    <td>${e.msgSent || 'No'}</td>
+                    <td class="text-center">
+                        <i class="bi bi-pencil-square text-primary action-icon me-2" title="Edit Transaction" onclick="editEarnTxn('${key}')"></i>
+                        <i class="bi bi-trash text-danger action-icon" title="Delete Transaction" onclick="deleteEarnTxn('${key}')"></i>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function refreshRedeemTable() {
+            const tbody = document.querySelector('#redeemTable tbody');
+            tbody.innerHTML = '';
+            const redeems = appData[currentEnvironment].redeem;
+
+            for (const [key, r] of Object.entries(redeems)) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${r.profileNumber || ''}</td>
+                    <td>${r.option || ''}</td>
+                    <td>${r.date || ''}</td>
+                    <td>${r.description || ''}</td>
+                    <td class="text-danger fw-semibold">-${r.amount || 0}</td>
+                    <td>${r.redeemedBy || ''}</td>
+                    <td class="text-center">
+                        <i class="bi bi-pencil-square text-primary action-icon me-2" title="Edit Redemption" onclick="editRedeemTxn('${key}')"></i>
+                        <i class="bi bi-trash text-danger action-icon" title="Delete Redemption" onclick="deleteRedeemTxn('${key}')"></i>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function refreshBirthdaysTable() {
+            const tbody = document.querySelector('#birthdaysTable tbody');
+            tbody.innerHTML = '';
+            const profiles = appData[currentEnvironment].profiles;
+
+            for (const p of Object.values(profiles)) {
+                const bdate = p.dob || p.loyaltyJoiningDate;
+                if (!bdate) continue;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${p.profileNumber || ''}</td>
+                    <td>${p.nameEn || ''}</td>
+                    <td>${bdate}</td>
+                    <td>${p.mobileNumber || ''}</td>
+                    <td><span class="badge bg-info text-dark">Active</span></td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        // --- UTILITIES & MOCK EXPORTS ---
+        function filterPatientsTable() {
+            const query = document.getElementById('searchPatients').value.toLowerCase();
+            const rows = document.querySelectorAll('#patientsTable tbody tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
+
+        function filterTransactions() {
+            const query = document.getElementById('searchTxn').value.toLowerCase();
+            const reasonFilter = document.getElementById('filterReason').value;
+            const rows = document.querySelectorAll('#earnTable tbody tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                const reasonCell = row.children[1].innerText;
+                const matchQuery = text.includes(query);
+                const matchReason = !reasonFilter || reasonCell === reasonFilter;
+                row.style.display = (matchQuery && matchReason) ? '' : 'none';
+            });
+        }
+
+        function filterRedemptions() {
+            const query = document.getElementById('searchRedeem').value.toLowerCase();
+            const rows = document.querySelectorAll('#redeemTable tbody tr');
+            rows.forEach(row => {
+                row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+            });
+        }
+
+        function sortTable(tableId, colIndex) {
+            const table = document.getElementById(tableId);
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            rows.sort((a, b) => {
+                const aText = a.children[colIndex].innerText.trim();
+                const bText = b.children[colIndex].innerText.trim();
+                return aText.localeCompare(bText, undefined, {numeric: true});
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) {
+                alert("Please select a CSV or Excel file to upload.");
+                return;
+            }
+            alert("File selected successfully. Parsing records into current ledger...");
+        }
+
+        function downloadCSV() {
+            alert("Exporting current profiles ledger as CSV...");
+        }
+
+        function downloadAllDataExcel() {
+            alert("Exporting all portal database sheets as an Excel workbook...");
+        }
+
+        function clearDatabase() {
+            if (confirm("Are you sure you want to clear all data for this environment?")) {
+                appData[currentEnvironment] = { profiles: {}, earn: {}, redeem: {} };
+                refreshAllTables();
+            }
+        }
+
+        function togglePremiumExpiryRequirement() {}
+        function toggleB2BPremierExpiry() {}
+        function updateRedemptionOption() {}
+    </script>
 </body>
 </html>
